@@ -24,18 +24,35 @@ set signcolumn=yes
 " 总是显示标签栏
 set showtabline=2
 
+" 设置显示制表符等隐藏字符
+set list
+
+
+"----------------------------------------------------------------------
+" 颜色主题：色彩文件位于 colors 目录中
+"----------------------------------------------------------------------
+
+" 设置黑色背景
+set background=dark
+
+" 设置颜色主题，会在所有 runtimepaths 的 colors 目录寻找同名配置
+color desert256
+
+
+"----------------------------------------------------------------------
+" 防止 tmux
+"----------------------------------------------------------------------
 
 "----------------------------------------------------------------------
 " 状态栏设置
 "----------------------------------------------------------------------
-
 set statusline=                                 " 清空状态了
 set statusline+=\ %F                            " 文件名
 set statusline+=\ [%1*%M%*%n%R%H]               " buffer 编号和状态
 set statusline+=%=                              " 向右对齐
 set statusline+=\ %y                            " 文件类型
 
-" 最右边显示文件编码和行号等信息
+" 最右边显示文件编码和行号等信息，并且固定在一个 group 中，优先占位
 set statusline+=\ %0(%{&fileformat}\ [%{(&fenc==\"\"?&enc:&fenc).(&bomb?\",BOM\":\"\")}]\ %v:%l/%L%)
 
 
@@ -68,6 +85,46 @@ function! Vim_NeatTabLine()
 	endif
 
 	return s
+endfunc
+
+
+"----------------------------------------------------------------------
+" 需要显示到标签上的文件名
+"----------------------------------------------------------------------
+function! Vim_NeatBuffer(bufnr, fullname)
+	let l:name = bufname(a:bufnr)
+	if getbufvar(a:bufnr, '&modifiable')
+		if l:name == ''
+			return '[No Name]'
+		else
+			if a:fullname 
+				return fnamemodify(l:name, ':p')
+			else
+				let aname = fnamemodify(l:name, ':p')
+				let sname = fnamemodify(aname, ':t')
+				if sname == ''
+					let test = fnamemodify(aname, ':h:t')
+					if test != ''
+						return '<'. test . '>'
+					endif
+				endif
+				return sname
+			endif
+		endif
+	else
+		let l:buftype = getbufvar(a:bufnr, '&buftype')
+		if l:buftype == 'quickfix'
+			return '[Quickfix]'
+		elseif l:name != ''
+			if a:fullname 
+				return '-'.fnamemodify(l:name, ':p')
+			else
+				return '-'.fnamemodify(l:name, ':t')
+			endif
+		else
+		endif
+		return '[No Name]'
+	endif
 endfunc
 
 

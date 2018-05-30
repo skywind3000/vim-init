@@ -22,21 +22,21 @@ endif
 " 终端下允许 ALT 作为 meta key
 "----------------------------------------------------------------------
 if has('nvim') == 0 && has('gui_running') == 0
-	function! s:metacode(mode, key)
+	function! s:metacode(key)
 		exec "set <M-".a:key.">=\e".a:key
 	endfunc
 	for i in range(10)
-		call s:metacode(a:mode, nr2char(char2nr('0') + i))
+		call s:metacode(nr2char(char2nr('0') + i))
 	endfor
 	for i in range(26)
-		call s:metacode(a:mode, nr2char(char2nr('a') + i))
-		call s:metacode(a:mode, nr2char(char2nr('A') + i))
+		call s:metacode(nr2char(char2nr('a') + i))
+		call s:metacode(nr2char(char2nr('A') + i))
 	endfor
 	for c in [',', '.', '/', ';', '{', '}']
-		call s:metacode(a:mode, c)
+		call s:metacode(c)
 	endfor
 	for c in ['?', ':', '-', '_', '+', '=', "'"]
-		call s:metacode(a:mode, c)
+		call s:metacode(c)
 	endfor
 endif
 
@@ -70,5 +70,18 @@ call s:key_escape('<S-F9>', '[20;2~')
 call s:key_escape('<S-F10>', '[21;2~')
 call s:key_escape('<S-F11>', '[23;2~')
 call s:key_escape('<S-F12>', '[24;2~')
+
+
+"----------------------------------------------------------------------
+" 防止tmux下vim的背景色显示异常
+" Refer: http://sunaku.github.io/vim-256color-bce.html
+"----------------------------------------------------------------------
+if &term =~ '256color' && $TMUX != ''
+	" disable Background Color Erase (BCE) so that color schemes
+	" render properly when inside 256-color tmux and GNU screen.
+	" see also http://snk.tuxfamily.org/log/vim-256color-bce.html
+	set t_ut=
+endif
+
 
 

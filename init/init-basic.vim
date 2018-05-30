@@ -90,23 +90,6 @@ endif
 
 
 "----------------------------------------------------------------------
-" 默认缩进模式（可以后期覆盖）
-"----------------------------------------------------------------------
-
-" 设置缩进宽度
-set sw=4
-
-" 设置 TAB 宽度
-set ts=4
-
-" 禁止展开 tab (noexpandtab)
-set noet
-
-" 如果后面设置了 expandtab 那么展开 tab 为多少字符
-set softtabstop=4
-
-
-"----------------------------------------------------------------------
 " 其他设置
 "----------------------------------------------------------------------
 
@@ -114,10 +97,7 @@ set softtabstop=4
 set showmatch
 
 " 显示括号匹配的时间
-set matchtime=3
-
-" 设置分隔符可视
-set listchars=tab:\|\ ,trail:.,extends:>,precedes:<
+set matchtime=2
 
 " 显示最后一行
 set display=lastline
@@ -130,6 +110,9 @@ set lazyredraw
 
 " 错误格式
 set errorformat+=[%f:%l]\ ->\ %m,[%f:%l]:%m
+
+" 设置分隔符可视
+set listchars=tab:\|\ ,trail:.,extends:>,precedes:<
 
 
 " 设置 tags：当前文件所在目录往上向根目录搜索直到碰到 .tags 文件
