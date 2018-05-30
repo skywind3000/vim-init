@@ -1,10 +1,42 @@
-
+"======================================================================
+"
+" init-style.vim - 显示样式设置
+"
+" Created by skywind on 2018/05/30
+" Last Modified: 2018/05/30 20:29:07
+"
+"======================================================================
 
 
 "----------------------------------------------------------------------
-" 设置标签栏文字模式：[1] filename.txt 这样
+" 显示设置
 "----------------------------------------------------------------------
-let g:config_vim_tab_style = 1
+
+" 总是显示状态栏
+set laststatus=2
+
+" 总是显示行号
+set number
+
+" 总是显示侧边栏（用于显示 mark/gitdiff/诊断信息）
+set signcolumn=yes
+
+" 总是显示标签栏
+set showtabline=2
+
+
+"----------------------------------------------------------------------
+" 状态栏设置
+"----------------------------------------------------------------------
+
+set statusline=                                 " 清空状态了
+set statusline+=\ %F                            " 文件名
+set statusline+=\ [%1*%M%*%n%R%H]               " buffer 编号和状态
+set statusline+=%=                              " 向右对齐
+set statusline+=\ %y                            " 文件类型
+
+" 最右边显示文件编码和行号等信息
+set statusline+=\ %0(%{&fileformat}\ [%{(&fenc==\"\"?&enc:&fenc).(&bomb?\",BOM\":\"\")}]\ %v:%l/%L%)
 
 
 "----------------------------------------------------------------------
@@ -48,13 +80,6 @@ function! Vim_NeatTabLabel(n)
 	let l:bufnr = l:buflist[l:winnr - 1]
 	let l:fname = Vim_NeatBuffer(l:bufnr, 0)
 	let l:num = a:n
-	if g:config_vim_tab_style == 0
-		return l:fname
-	elseif g:config_vim_tab_style == 1
-		return "[".l:num."] ".l:fname
-	elseif g:config_vim_tab_style == 2
-		return "".l:num." - ".l:fname
-	endif
 	if getbufvar(l:bufnr, '&modified')
 		return "[".l:num."] ".l:fname." +"
 	endif
@@ -71,13 +96,6 @@ function! Vim_NeatGuiTabLabel()
 	let l:winnr = tabpagewinnr(l:num)
 	let l:bufnr = l:buflist[l:winnr - 1]
 	let l:fname = Vim_NeatBuffer(l:bufnr, 0)
-	if g:config_vim_tab_style == 0
-		return l:fname
-	elseif g:config_vim_tab_style == 1
-		return "[".l:num."] ".l:fname
-	elseif g:config_vim_tab_style == 2
-		return "".l:num." - ".l:fname
-	endif
 	if getbufvar(l:bufnr, '&modified')
 		return "[".l:num."] ".l:fname." +"
 	endif
@@ -110,7 +128,10 @@ function! Vim_NeatGuiTabTip()
 	return tip
 endfunc
 
-" setup new tabline, just %M%t in macvim
+
+"----------------------------------------------------------------------
+" 标签栏最终设置
+"----------------------------------------------------------------------
 set tabline=%!Vim_NeatTabLine()
 set guitablabel=%{Vim_NeatGuiTabLabel()}
 set guitabtooltip=%{Vim_NeatGuiTabTip()}
