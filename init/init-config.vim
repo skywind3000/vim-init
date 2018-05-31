@@ -19,7 +19,7 @@ endif
 
 
 "----------------------------------------------------------------------
-" 终端下允许 ALT 作为 meta key
+" 终端下允许 ALT，详见：http://www.skywind.me/blog/archives/2021
 "----------------------------------------------------------------------
 if has('nvim') == 0 && has('gui_running') == 0
 	function! s:metacode(key)
@@ -82,6 +82,32 @@ if &term =~ '256color' && $TMUX != ''
 	" see also http://snk.tuxfamily.org/log/vim-256color-bce.html
 	set t_ut=
 endif
+
+
+"----------------------------------------------------------------------
+" 备份设置
+"----------------------------------------------------------------------
+
+" 允许备份
+set backup
+
+" 保存时备份
+set writebackup
+
+" 备份文件地址，统一管理
+set backupdir=~/.vim/tmp
+
+" 备份文件扩展名
+set backupext=.bak
+
+" 禁用交换文件
+set noswapfile
+
+" 禁用 undo文件
+set noundofile
+
+" 创建目录，并且忽略可能出现的警告
+silent! call mkdir(expand('~/.vim/tmp'), "p", 0755)
 
 
 

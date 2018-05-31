@@ -27,6 +27,12 @@ set showtabline=2
 " 设置显示制表符等隐藏字符
 set list
 
+" 右下角显示命令
+set showcmd
+
+" 插入模式在状态栏下面显示 -- INSERT --
+set showmode
+
 
 "----------------------------------------------------------------------
 " 颜色主题：色彩文件位于 colors 目录中
@@ -54,6 +60,17 @@ set statusline+=\ %y                            " 文件类型
 
 " 最右边显示文件编码和行号等信息，并且固定在一个 group 中，优先占位
 set statusline+=\ %0(%{&fileformat}\ [%{(&fenc==\"\"?&enc:&fenc).(&bomb?\",BOM\":\"\")}]\ %v:%l/%L%)
+
+
+"----------------------------------------------------------------------
+" 标签栏文字风格：默认为零，GUI 模式下空间大，按风格 3显示
+" 0: filename.txt
+" 2: 1 - filename.txt
+" 3: [1] filename.txt
+"----------------------------------------------------------------------
+if has('gui_running')
+	let g:config_vim_tab_style = 3
+endif
 
 
 "----------------------------------------------------------------------
@@ -137,6 +154,14 @@ function! Vim_NeatTabLabel(n)
 	let l:bufnr = l:buflist[l:winnr - 1]
 	let l:fname = Vim_NeatBuffer(l:bufnr, 0)
 	let l:num = a:n
+	let style = get(g:, 'config_vim_tab_style', 0)
+	if style == 0
+		return l:fname
+	elseif style == 1
+		return "[".l:num."] ".l:fname
+	elseif style == 2
+		return "".l:num." - ".l:fname
+	endif
 	if getbufvar(l:bufnr, '&modified')
 		return "[".l:num."] ".l:fname." +"
 	endif
@@ -153,11 +178,20 @@ function! Vim_NeatGuiTabLabel()
 	let l:winnr = tabpagewinnr(l:num)
 	let l:bufnr = l:buflist[l:winnr - 1]
 	let l:fname = Vim_NeatBuffer(l:bufnr, 0)
+	let style = get(g:, 'config_vim_tab_style', 0)
+	if style == 0
+		return l:fname
+	elseif style == 1
+		return "[".l:num."] ".l:fname
+	elseif style == 2
+		return "".l:num." - ".l:fname
+	endif
 	if getbufvar(l:bufnr, '&modified')
 		return "[".l:num."] ".l:fname." +"
 	endif
 	return "[".l:num."] ".l:fname
 endfunc
+
 
 
 "----------------------------------------------------------------------
