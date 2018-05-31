@@ -63,6 +63,24 @@ set statusline+=\ %0(%{&fileformat}\ [%{(&fenc==\"\"?&enc:&fenc).(&bomb?\",BOM\"
 
 
 "----------------------------------------------------------------------
+" 更改样式
+"----------------------------------------------------------------------
+
+" 更好看一点的错误标注：GVim 下只显示红色或者蓝色下划波浪线
+if has('gui_running')
+	hi! clear SpellBad
+	hi! clear SpellCap
+	hi! clear SpellRare
+	hi! SpellBad gui=undercurl guisp=red
+	hi! SpellCap gui=undercurl guisp=blue
+	hi! SpellRare gui=undercurl guisp=magenta
+endif
+
+" 去掉 sign column 的白色背景
+hi! SignColumn ctermbg=0 guibg=0
+
+
+"----------------------------------------------------------------------
 " 标签栏文字风格：默认为零，GUI 模式下空间大，按风格 3显示
 " 0: filename.txt
 " 2: 1 - filename.txt
