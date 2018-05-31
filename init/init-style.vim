@@ -77,7 +77,11 @@ if has('gui_running')
 endif
 
 " 去掉 sign column 的白色背景
-hi! SignColumn ctermbg=0 guibg=0
+hi! SignColumn ctermbg=0 guibg=#000000
+
+" 修改行号为浅灰色
+highlight LineNr term=bold cterm=NONE ctermfg=DarkGrey ctermbg=NONE 
+	\ gui=NONE guifg=DarkGrey guibg=NONE
 
 
 "----------------------------------------------------------------------
