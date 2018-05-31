@@ -65,14 +65,26 @@ set statusline+=\ %0(%{&fileformat}\ [%{(&fenc==\"\"?&enc:&fenc).(&bomb?\",BOM\"
 " 更改样式
 "----------------------------------------------------------------------
 
-" 更好看一点的错误标注：GVim 下只显示红色或者蓝色下划波浪线
+" 更清晰的错误标注：默认一片红色背景，语法高亮都被搞没了
+" 只显示红色或者蓝色下划线或者波浪线
 if has('gui_running')
 	hi! clear SpellBad
 	hi! clear SpellCap
 	hi! clear SpellRare
+	hi! clear SpellLocal
 	hi! SpellBad gui=undercurl guisp=red
 	hi! SpellCap gui=undercurl guisp=blue
 	hi! SpellRare gui=undercurl guisp=magenta
+	hi! SpellRare gui=undercurl guisp=cyan
+else
+	hi! clear SpellBad
+	hi! clear SpellCap
+	hi! clear SpellRare
+	hi! clear SpellLocal
+	hi! SpellBad term=standout ctermfg=1 term=underline cterm=underline
+	hi! SpellCap term=underline cterm=underline
+	hi! SpellRare term=underline cterm=underline
+	hi! SpellLocal term=underline cterm=underline
 endif
 
 " 去掉 sign column 的白色背景
