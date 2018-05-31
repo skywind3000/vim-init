@@ -41,13 +41,12 @@ set showmode
 " 设置黑色背景
 set background=dark
 
+" 允许 256 色
+set t_Co=256
+
 " 设置颜色主题，会在所有 runtimepaths 的 colors 目录寻找同名配置
 color desert256
 
-
-"----------------------------------------------------------------------
-" 防止 tmux
-"----------------------------------------------------------------------
 
 "----------------------------------------------------------------------
 " 状态栏设置
@@ -79,7 +78,7 @@ endif
 " 去掉 sign column 的白色背景
 hi! SignColumn ctermbg=0 guibg=#000000
 
-" 修改行号为浅灰色
+" 修改行号为浅灰色，默认主题的黄色行号很难看，换主题可以仿照修改
 highlight LineNr term=bold cterm=NONE ctermfg=DarkGrey ctermbg=NONE 
 	\ gui=NONE guifg=DarkGrey guibg=NONE
 
