@@ -8,9 +8,20 @@
 "======================================================================
 
 if !exists('g:bundle_group')
-	let g:bundle_group = ['basic', 'enhanced', 'filetypes', 'textobj']
+	let g:bundle_group = ['basic', 'tags', 'enhanced', 'filetypes', 'textobj']
+	let g:bundle_group += ['tags', 'airline', 'nerdtree', 'ale', 'echodoc', 'lsp']
 endif
 
+
+"----------------------------------------------------------------------
+" 计算当前 vim-init 的子路径
+"----------------------------------------------------------------------
+let s:home = fnamemodify(resolve(expand('<sfile>:p')), ':h')
+
+function! s:path(path)
+	let path = expand(s:home . '/' . a:path )
+	return substitute(path, '\\', '/', 'g')
+endfunc
 
 
 "----------------------------------------------------------------------
@@ -19,24 +30,20 @@ endif
 call plug#begin(get(g:, 'bundle_home', '~/.vim/bundles'))
 
 
+"----------------------------------------------------------------------
+" 默认插件 
+"----------------------------------------------------------------------
+Plug 'easymotion/vim-easymotion'
+Plug 'justinmk/vim-dirvish'
+Plug 'tpope/vim-unimpaired'
+Plug 'godlygeek/tabular', { 'on': 'Tabularize' }
+Plug 'skywind3000/asyncrun.vim'
+
 
 "----------------------------------------------------------------------
-" 基础插件 
+" 基础插件
 "----------------------------------------------------------------------
 if index(g:bundle_group, 'basic') >= 0
-	Plug 'easymotion/vim-easymotion'
-	Plug 'Raimondi/delimitMate'
-	Plug 'justinmk/vim-dirvish'
-	Plug 'tpope/vim-unimpaired'
-	Plug 'godlygeek/tabular', { 'on': 'Tabularize' }
-	Plug 'skywind3000/asyncrun.vim'
-endif
-
-
-"----------------------------------------------------------------------
-" 增强插件
-"----------------------------------------------------------------------
-if index(g:bundle_group, 'enhanced') >= 0
 	Plug 'tpope/vim-fugitive'
 	Plug 'mhinz/vim-startify'
 	Plug 'flazz/vim-colorschemes'
@@ -47,6 +54,56 @@ if index(g:bundle_group, 'enhanced') >= 0
 	Plug 'mh21/errormarker.vim'
 	Plug 't9md/vim-choosewin'
 	Plug 'junegunn/fzf'
+	Plug 'Raimondi/delimitMate'
+	Plug 'skywind3000/vim-preview'
+
+	" 使用 ALT+E 来选择窗口
+	nmap <m-e> <Plug>(choosewin)
+
+	" 默认不显示 startify
+	let g:startify_disable_at_vimenter = 1
+	let g:startify_session_dir = '~/.vim/session'
+endif
+
+
+"----------------------------------------------------------------------
+" 自动生成 ctags/gtags，并提供自动索引功能
+" 详细用法见：https://zhuanlan.zhihu.com/p/36279445
+"----------------------------------------------------------------------
+if index(g:bundle_group, 'tags') >= 0
+	Plug 'ludovicchabant/vim-gutentags'
+	Plug 'skywind3000/gutentags_plus'
+
+	" 设定项目目录标志：除了 .git/.svn 外，还有 .root 文件
+	let g:gutentags_project_root = ['.root']
+	let g:gutentags_ctags_tagfile = '.tags'
+
+	" 默认生成的数据文件集中到 ~/.cache/tags 避免污染项目目录，好清理
+	let g:gutentags_cache_dir = expand('~/.cache/tags')
+
+	" 默认禁用自动生成
+	let g:gutentags_modules = [] 
+
+	" 如果有 ctags 可执行就允许动态生成 ctags 文件
+	if executable('ctags')
+		let g:gutentags_modules += ['ctags']
+	endif
+
+	" 如果有 gtags 可执行就允许动态生成 gtags 数据库
+	if executable('gtags') && executable('gtags-cscope')
+		let g:gutentags_modules += ['gtags_cscope']
+	endif
+
+	" 设置 ctags 的参数
+	let g:gutentags_ctags_extra_args = []
+	let g:gutentags_ctags_extra_args = ['--fields=+niazS', '--extra=+q']
+	let g:gutentags_ctags_extra_args += ['--c++-kinds=+px']
+	let g:gutentags_ctags_extra_args += ['--c-kinds=+px']
+
+	" 使用 universal-ctags 的话需要下面这行，请反注释
+	" let g:gutentags_ctags_extra_args += ['--output-format=e-ctags']
+
+	let g:gutentags_auto_add_gtags_cscope = 0
 endif
 
 
@@ -93,7 +150,6 @@ if index(g:bundle_group, 'airline') >= 0
 endif
 
 
-
 "----------------------------------------------------------------------
 " NERDTree
 "----------------------------------------------------------------------
@@ -127,14 +183,32 @@ if index(g:bundle_group, 'grammer') >= 0
 endif
 
 
-
 "----------------------------------------------------------------------
-" ale
+" ale：动态语法检查
 "----------------------------------------------------------------------
 if index(g:bundle_group, 'ale') >= 0
 	Plug 'w0rp/ale'
 
+	" 设定延迟和提示信息
+	let g:ale_completion_delay = 500
+	let g:ale_echo_delay = 20
+	let g:ale_lint_delay = 500
+	let g:ale_echo_msg_format = '[%linter%] %code: %%s'
+
+	" 设定检测的时机：normal 模式文字改变，或者离开 insert模式
+	" 禁用默认 INSERT 模式下改变文字也触发的设置，太频繁外，还会让补全窗闪烁
+	let g:ale_lint_on_text_changed = 'normal'
+	let g:ale_lint_on_insert_leave = 1
+
+	" 在 linux/mac 下降低语法检查程序的进程优先级（不要卡到前台进程）
+	if has('win32') == 0 && has('win64') == 0 && has('win32unix') == 0
+		let g:ale_command_wrapper = 'nice -n5'
+	endif
+
+	" 允许 airline 集成
 	let g:airline#extensions#ale#enabled = 1
+
+	" 编辑不同文件类型需要的语法检查器
 	let g:ale_linters = {
 				\ 'c': ['gcc', 'cppcheck'], 
 				\ 'cpp': ['gcc', 'cppcheck'], 
@@ -145,11 +219,8 @@ if index(g:bundle_group, 'ale') >= 0
 				\ 'javascript': ['eslint'], 
 				\ }
 
-	function! s:path(path)
-		let path = expand(s:home . '/' . a:path )
-		return substitute(path, '\\', '/', 'g')
-	endfunc
 
+	" 获取 pylint, flake8 的配置文件，在 vim-init/tools/conf 下面
 	function s:lintcfg(name)
 		let conf = s:path('tools/conf/')
 		let path1 = conf . a:name
@@ -160,6 +231,7 @@ if index(g:bundle_group, 'ale') >= 0
 		return shellescape(filereadable(path2)? path2 : path1)
 	endfunc
 
+	" 设置 flake8/pylint 的参数
 	let g:ale_python_flake8_options = '--conf='.s:lintcfg('flake8.conf')
 	let g:ale_python_pylint_options = '--rcfile='.s:lintcfg('pylint.conf')
 	let g:ale_python_pylint_options .= ' --disable=W'
@@ -170,6 +242,7 @@ if index(g:bundle_group, 'ale') >= 0
 
 	let g:ale_linters.text = ['textlint', 'write-good', 'languagetool']
 
+	" 如果没有 gcc 只有 clang 时（FreeBSD）
 	if executable('gcc') == 0 && executable('clang')
 		let g:ale_linters.c += ['clang']
 		let g:ale_linters.cpp += ['clang']
@@ -178,7 +251,43 @@ endif
 
 
 "----------------------------------------------------------------------
+" echodoc
+"----------------------------------------------------------------------
+if index(g:bundle_group, 'echodoc') >= 0
+	Plug 'Shougo/echodoc.vim'
+	set noshowmode
+	let g:echodoc#enable_at_startup = 1
+endif
+
+
+"----------------------------------------------------------------------
+" lsp：详细见
+"----------------------------------------------------------------------
+if index(g:bundle_group, 'lsp') >= 0
+	Plug 'autozimu/LanguageClient-neovim', { 'branch': 'next' }
+	let g:LanguageClient_loadSettings = 1
+	let g:LanguageClient_diagnosticsEnable = 0
+	let g:LanguageClient_settingsPath = expand('~/.vim/languageclient.json')
+	let g:LanguageClient_selectionUI = 'quickfix'
+	let g:LanguageClient_diagnosticsList = v:null
+	let g:LanguageClient_hoverPreview = 'Never'
+	" let g:LanguageClient_loggingLevel = 'DEBUG'
+	if !exists('g:LanguageClient_serverCommands')
+		let g:LanguageClient_serverCommands = {}
+		let g:LanguageClient_serverCommands.c = ['cquery']
+		let g:LanguageClient_serverCommands.cpp = ['cquery']
+	endif
+	noremap <leader>rd :call LanguageClient#textDocument_definition()<cr>
+	noremap <leader>re :call LanguageClient#textDocument_definition()<cr>
+	noremap <leader>rr :call LanguageClient#textDocument_references()<cr>
+	noremap <leader>rv :call LanguageClient#textDocument_hover()<cr>
+endif
+
+
+"----------------------------------------------------------------------
 " 结束插件安装
 "----------------------------------------------------------------------
 call plug#end()
+
+
 
