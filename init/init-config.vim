@@ -110,4 +110,35 @@ set noundofile
 silent! call mkdir(expand('~/.vim/tmp'), "p", 0755)
 
 
+"----------------------------------------------------------------------
+" 配置微调
+"----------------------------------------------------------------------
+
+" 修正 ScureCRT/XShell 以及某些终端乱码问题，主要原因是不支持一些
+" 终端控制命令，比如 cursor shaping 这类更改光标形状的 xterm 终端命令
+" 会令一些支持 xterm 不完全的终端解析错误，显示为错误的字符，比如 q 字符
+if has('nvim')
+	set guicursor=
+elseif (!has('gui_running')) && has('terminal') && has('patch-8.0.1200')
+	let g:termcap_guicursor = &guicursor
+	let g:termcap_t_RS = &t_RS
+	let g:termcap_t_SH = &t_SH
+	set guicursor=
+	set t_RS=
+	set t_SH=
+endif
+
+" 打开文件时恢复上一次光标所在位置
+autocmd BufReadPost *
+	\ if line("'\"") > 1 && line("'\"") <= line("$") |
+	\	 exe "normal! g`\"" |
+	\ endif
+
+" 定义一个 DiffOrig 命令用于查看文件改动
+if !exists(":DiffOrig")
+  command DiffOrig vert new | set bt=nofile | r ++edit # | 0d_ | diffthis
+          \ | wincmd p | diffthis
+endif
+
+
 
