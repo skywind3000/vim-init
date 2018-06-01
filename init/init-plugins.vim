@@ -82,7 +82,11 @@ endif
 "----------------------------------------------------------------------
 " F2 在项目目录下 Grep 光标下单词，默认 C/C++/Py/Js ，扩展名自己扩充
 "----------------------------------------------------------------------
-if has('win32') || has('win64')
+if executable('rg')
+	noremap <silent><F2> :AsyncRun! -cwd=<root> rg -n --no-heading 
+				\ --color never -g *.h -g *.c* -g *.py -g *.js -g *.vim 
+				\ <C-R><C-W> "<root>" <cr>
+elseif has('win32') || has('win64')
     noremap <silent><F2> :AsyncRun! -cwd=<root> findstr /n /s /C:"<C-R><C-W>" 
 				\ "\%CD\%\*.h" "\%CD\%\*.c*" "\%CD\%\*.py" "\%CD\%\*.js"
 				\ "\%CD\%\*.vim"
