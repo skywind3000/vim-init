@@ -154,3 +154,28 @@ noremap <silent><m-left> :call Tab_MoveLeft()<cr>
 noremap <silent><m-right> :call Tab_MoveRight()<cr>
 
 
+"----------------------------------------------------------------------
+" ALT 键移动增强
+"----------------------------------------------------------------------
+
+" ALT+h/l 快速左右按单词移动（正常模式+插入模式）
+noremap <M-h> b
+noremap <M-l> w
+inoremap <M-h> <c-left>
+inoremap <M-l> <c-right>
+
+" ALT+j/k 逻辑跳转下一行/上一行（按 wrap 逻辑换行进行跳转） 
+noremap <M-j> gj
+noremap <M-k> gk
+inoremap <M-j> <c-\><c-o>gj
+inoremap <M-k> <c-\><c-o>gk
+
+" 命令模式下的相同快捷
+cnoremap <M-h> <c-left>
+cnoremap <M-l> <c-right>
+
+" ALT+y 删除到行末
+noremap <M-y> d$
+inoremap <M-y> <c-\><c-o>d$
+
+
