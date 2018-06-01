@@ -9,7 +9,7 @@
 
 if !exists('g:bundle_group')
 	let g:bundle_group = ['basic', 'tags', 'enhanced', 'filetypes', 'textobj']
-	let g:bundle_group += ['tags', 'airline', 'nerdtree', 'ale', 'echodoc', 'lsp']
+	let g:bundle_group += ['tags', 'airline', 'nerdtree', 'ale', 'echodoc']
 endif
 
 
@@ -38,6 +38,82 @@ Plug 'justinmk/vim-dirvish'
 Plug 'tpope/vim-unimpaired'
 Plug 'godlygeek/tabular', { 'on': 'Tabularize' }
 Plug 'skywind3000/asyncrun.vim'
+
+
+"----------------------------------------------------------------------
+" 编译运行 C/C++ 项目
+" 详细见：http://www.skywind.me/blog/archives/2084
+"----------------------------------------------------------------------
+
+" 自动打开 quickfix window ，高度为 6
+let g:asyncrun_open = 6
+
+" 任务结束时候响铃提醒
+let g:asyncrun_bell = 1
+
+" 设置 F10 打开/关闭 Quickfix 窗口
+nnoremap <F10> :call asyncrun#quickfix_toggle(6)<cr>
+
+" F9 编译 C/C++ 文件
+nnoremap <silent> <F9> :AsyncRun gcc -Wall -O2 "$(VIM_FILEPATH)" -o "$(VIM_FILEDIR)/$(VIM_FILENOEXT)" <cr>
+
+" F5 运行文件
+nnoremap <silent> <F5> :AsyncRun -raw -cwd=$(VIM_FILEDIR) "$(VIM_FILEDIR)/$(VIM_FILENOEXT)" <cr>
+
+" F7 编译项目
+nnoremap <silent> <F7> :AsyncRun -cwd=<root> make <cr>
+
+" F8 运行项目
+nnoremap <silent> <F8> :AsyncRun -cwd=<root> -raw make run <cr>
+
+" F6 测试项目
+nnoremap <silent> <F6> :AsyncRun -cwd=<root> -raw make test <cr>
+
+" 更新 cmake
+nnoremap <silent> <F4> :AsyncRun -cwd=<root> cmake . <cr>
+
+" Windows 下支持直接打开新 cmd 窗口运行
+if has('win32') || has('win64')
+	nnoremap <silent> <F5> :AsyncRun -cwd=$(VIM_FILEDIR) -mode=4 "$(VIM_FILEDIR)/$(VIM_FILENOEXT)" <cr>
+	nnoremap <silent> <F8> :AsyncRun -cwd=<root> -mode=4 make run <cr>
+endif
+
+
+"----------------------------------------------------------------------
+" F2 在项目目录下 Grep 光标下单词，默认 C/C++/Py 代码，扩展名自己扩充
+"----------------------------------------------------------------------
+if has('win32') || has('win64')
+    noremap <F2> :AsyncRun! -cwd=<root> grep -n -s -R <C-R><C-W> --include='*.h' --include='*.c*' --include='*.py' '<root>' <cr>
+else
+    noremap <F2> :AsyncRun! -cwd=<root> findstr /n /s /C:"<C-R><C-W>" "\%CD\%\*.h" "\%CD\%\*.c*" "\%CD\%\*.py"<cr>
+endif
+
+
+
+"----------------------------------------------------------------------
+" Dirvish 设置：自动排序并隐藏文件，同时定位到相关文件
+"----------------------------------------------------------------------
+function! s:setup_dirvish()
+	if &buftype != 'nofile' && &filetype != 'dirvish'
+		return
+	endif
+	let text = getline('.')
+	if ! get(g:, 'dirvish_hide_visible', 0)
+		exec 'silent keeppatterns g@\v[\/]\.[^\/]+[\/]?$@d _'
+	endif
+	" 排序文件名
+	exec 'sort ,^.*[\/],'
+	let name = '^' . escape(text, '.*[]~\') . '[/*|@=|\\*]\=\%($\|\s\+\)'
+	" 定位到之前光标处的文件
+	call search(name, 'wc')
+	noremap <silent><buffer> ~ :Dirvish ~<cr>
+	noremap <buffer> % :e %
+endfunc
+
+augroup MyPluginSetup
+	autocmd!
+	autocmd FileType dirvish call s:setup_dirvish()
+augroup END
 
 
 "----------------------------------------------------------------------
@@ -103,6 +179,7 @@ if index(g:bundle_group, 'tags') >= 0
 	" 使用 universal-ctags 的话需要下面这行，请反注释
 	" let g:gutentags_ctags_extra_args += ['--output-format=e-ctags']
 
+	" 禁止 gutentags 自动链接 gtags 数据库
 	let g:gutentags_auto_add_gtags_cscope = 0
 endif
 
@@ -261,33 +338,29 @@ endif
 
 
 "----------------------------------------------------------------------
-" lsp：详细见
-"----------------------------------------------------------------------
-if index(g:bundle_group, 'lsp') >= 0
-	Plug 'autozimu/LanguageClient-neovim', { 'branch': 'next' }
-	let g:LanguageClient_loadSettings = 1
-	let g:LanguageClient_diagnosticsEnable = 0
-	let g:LanguageClient_settingsPath = expand('~/.vim/languageclient.json')
-	let g:LanguageClient_selectionUI = 'quickfix'
-	let g:LanguageClient_diagnosticsList = v:null
-	let g:LanguageClient_hoverPreview = 'Never'
-	" let g:LanguageClient_loggingLevel = 'DEBUG'
-	if !exists('g:LanguageClient_serverCommands')
-		let g:LanguageClient_serverCommands = {}
-		let g:LanguageClient_serverCommands.c = ['cquery']
-		let g:LanguageClient_serverCommands.cpp = ['cquery']
-	endif
-	noremap <leader>rd :call LanguageClient#textDocument_definition()<cr>
-	noremap <leader>re :call LanguageClient#textDocument_definition()<cr>
-	noremap <leader>rr :call LanguageClient#textDocument_references()<cr>
-	noremap <leader>rv :call LanguageClient#textDocument_hover()<cr>
-endif
-
-
-"----------------------------------------------------------------------
 " 结束插件安装
 "----------------------------------------------------------------------
 call plug#end()
 
+
+
+"-----------------------------------------------------
+" YouCompleteMe 默认设置
+"-----------------------------------------------------
+let g:ycm_add_preview_to_completeopt = 0
+let g:ycm_show_diagnostics_ui = 0
+let g:ycm_server_log_level = 'info'
+let g:ycm_min_num_identifier_candidate_chars = 2
+let g:ycm_collect_identifiers_from_comments_and_strings = 1
+let g:ycm_complete_in_strings=1
+let g:ycm_key_invoke_completion = '<c-z>'
+set completeopt=menu,menuone
+
+" noremap <c-z> <NOP>
+
+let g:ycm_semantic_triggers =  {
+			\ 'c,cpp,python,java,go,erlang,perl': ['re!\w{2}'],
+			\ 'cs,lua,javascript': ['re!\w{2}'],
+			\ }
 
 
