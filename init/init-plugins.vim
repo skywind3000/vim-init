@@ -80,12 +80,18 @@ endif
 
 
 "----------------------------------------------------------------------
-" F2 在项目目录下 Grep 光标下单词，默认 C/C++/Py 代码，扩展名自己扩充
+" F2 在项目目录下 Grep 光标下单词，默认 C/C++/Py/Js ，扩展名自己扩充
 "----------------------------------------------------------------------
 if has('win32') || has('win64')
-    noremap <F2> :AsyncRun! -cwd=<root> grep -n -s -R <C-R><C-W> --include='*.h' --include='*.c*' --include='*.py' '<root>' <cr>
+    noremap <silent><F2> :AsyncRun! -cwd=<root> findstr /n /s /C:"<C-R><C-W>" 
+				\ "\%CD\%\*.h" "\%CD\%\*.c*" "\%CD\%\*.py" "\%CD\%\*.js"
+				\ "\%CD\%\*.vim"
+				\ <cr>
 else
-    noremap <F2> :AsyncRun! -cwd=<root> findstr /n /s /C:"<C-R><C-W>" "\%CD\%\*.h" "\%CD\%\*.c*" "\%CD\%\*.py"<cr>
+    noremap <silent><F2> :AsyncRun! -cwd=<root> grep -n -s -R <C-R><C-W> 
+				\ --include='*.h' --include='*.c*' --include='*.py' 
+				\ --include='*.js' --include='*.vim'
+				\ '<root>' <cr>
 endif
 
 
