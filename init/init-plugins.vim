@@ -9,6 +9,7 @@
 
 if !exists('g:bundle_group')
 	let g:bundle_group = ['basic', 'tags', 'enhanced', 'filetypes', 'textobj']
+	" let g:bundle_group += ['tags', 'airline', 'nerdtree', 'ale', 'echodoc']
 	let g:bundle_group += ['tags', 'airline', 'nerdtree', 'ale', 'echodoc']
 endif
 
@@ -234,6 +235,12 @@ if index(g:bundle_group, 'airline') >= 0
 	let g:airline_powerline_fonts = 0
 	let g:airline_exclude_preview = 1
 	let g:airline_section_b = '%n'
+	let g:airline_theme='deus'
+	let g:airline#extensions#branch#enabled = 0
+	let g:airline#extensions#syntastic#enabled = 0
+	let g:airline#extensions#fugitiveline#enabled = 0
+	let g:airline#extensions#csv#enabled = 0
+	let g:airline#extensions#vimagit#enabled = 0
 endif
 
 

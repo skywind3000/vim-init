@@ -96,6 +96,28 @@ highlight LineNr term=bold cterm=NONE ctermfg=DarkGrey ctermbg=NONE
 
 
 "----------------------------------------------------------------------
+" 终端设置，隐藏行号和侧边栏
+"----------------------------------------------------------------------
+if has('terminal') && exists(':terminal') == 2
+	if exists('##TerminalOpen')
+		augroup VimUnixTerminalGroup
+			au! 
+			au TerminalOpen * setlocal nonumber signcolumn=no
+		augroup END
+	endif
+endif
+
+
+"----------------------------------------------------------------------
+" quickfix 设置，隐藏行号
+"----------------------------------------------------------------------
+augroup VimInitStyle
+	au!
+	au FileType qf setlocal nonumber
+augroup END
+
+
+"----------------------------------------------------------------------
 " 标签栏文字风格：默认为零，GUI 模式下空间大，按风格 3显示
 " 0: filename.txt
 " 2: 1 - filename.txt
