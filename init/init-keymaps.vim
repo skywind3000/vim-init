@@ -179,3 +179,31 @@ noremap <m-y> d$
 inoremap <m-y> <c-\><c-o>d$
 
 
+"----------------------------------------------------------------------
+" 窗口切换：ALT+SHIFT+hjkl
+"----------------------------------------------------------------------
+noremap <m-H> <c-w>h
+noremap <m-L> <c-w>l
+noremap <m-J> <c-w>j
+noremap <m-K> <c-w>k
+inoremap <m-H> <esc><c-w>h
+inoremap <m-L> <esc><c-w>l
+inoremap <m-J> <esc><c-w>j
+inoremap <m-K> <esc><c-w>k
+
+if has('terminal') && exists(':terminal') == 2
+	tnoremap <m-H> <c-w>h
+	tnoremap <m-L> <c-w>l
+	tnoremap <m-J> <c-w>j
+	tnoremap <m-K> <c-w>k
+	tnoremap <m-q> <c-\><c-n>
+elseif has('nvim')
+	tnoremap <m-H> <c-\><c-n><c-w>h
+	tnoremap <m-L> <c-\><c-n><c-w>l
+	tnoremap <m-J> <c-\><c-n><c-w>j
+	tnoremap <m-K> <c-\><c-n><c-w>k
+	tnoremap <m-q> <c-\><c-n>
+endif
+
+
+
