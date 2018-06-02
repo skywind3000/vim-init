@@ -192,12 +192,14 @@ inoremap <m-J> <esc><c-w>j
 inoremap <m-K> <esc><c-w>k
 
 if has('terminal') && exists(':terminal') == 2
+	" vim 8.1 支持 termwinkey ，不需要把 terminal 切换成 normal 模式
 	tnoremap <m-H> <c-w>h
 	tnoremap <m-L> <c-w>l
 	tnoremap <m-J> <c-w>j
 	tnoremap <m-K> <c-w>k
 	tnoremap <m-q> <c-\><c-n>
 elseif has('nvim')
+	" neovim 没有 termwinkey 支持，必须把 terminal 切换回 normal 模式
 	tnoremap <m-H> <c-\><c-n><c-w>h
 	tnoremap <m-L> <c-\><c-n><c-w>l
 	tnoremap <m-J> <c-\><c-n><c-w>j
