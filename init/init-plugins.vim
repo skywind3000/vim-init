@@ -36,7 +36,6 @@ call plug#begin(get(g:, 'bundle_home', '~/.vim/bundles'))
 "----------------------------------------------------------------------
 Plug 'easymotion/vim-easymotion'
 Plug 'justinmk/vim-dirvish'
-Plug 'tpope/vim-unimpaired'
 Plug 'godlygeek/tabular', { 'on': 'Tabularize' }
 
 
