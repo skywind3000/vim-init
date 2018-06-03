@@ -1,4 +1,4 @@
-# 说明
+# 前言
 
 轻量级 Vim 配置框架，全中文注释，这既是一份合理的轻量级配置，更是一份简明教程。话说，网上的 Vim 配置多的数不过来，这里又做一个干嘛？这些配置都有一些问题：
 
@@ -52,7 +52,9 @@ source ~/.vim/vim-init/init.vim
 
 最好 fork 一份到你自己的仓库，然后不断修改，把它修改成你自己的东西，平时要更新时到这里同步下上游仓库，然后自己合并一下即可。
 
-本配置自带一些依赖较大的插件，保证内网连不了网的情况下，把本配置压缩包解压一下就能跑得起来，且基本功能可用，它们是：
+# 插件
+
+出去 vim-plug 额外安装的插件外，本配置自带一些依赖较大的插件，保证内网连不了网的情况下，把本配置压缩包解压一下就能跑得起来，且基本功能可用，它们是：
 
 - [argtextobj.vim](https://github.com/gaving/vim-textobj-argument)：提供函数参数的文本对象，比如 `cia`/`caa` 可以改写一个函数参数，`dia`/`daa` 可以删除一个参数。
 - [indent-object.vim](https://github.com/michaeljsmith/vim-indent-object)：提供缩进的文本对象，比如 `vii` 可以选中同一层缩进，`cii` 可以改写当前缩进。
@@ -63,3 +65,11 @@ source ~/.vim/vim-init/init.vim
 - [txt.vim](https://github.com/vim-scripts/txt.vim)：通用 txt/log 文件的语法高亮，为文本和日志等增加文件名/url/日期等高亮显示。
 
 这些插件都比较简单，往往一两个文件，分布于 `plugin` 和 `autoload` 两个目录中，你可以根据自己需要增改。
+
+# 帮助
+
+既然时全中文注释，帮助主要看 [init-keymaps.vim](https://github.com/skywind3000/vim-init/blob/master/init/init-keymaps.vim) 和 [init-plugins.vim](https://github.com/skywind3000/vim-init/blob/master/init/init-plugins.vim) 两个文件，每个点我都写满了注释了，也是未来你自己可能修改的最多的两个文件。每次你修改或者调试了单个 .vim 配置文件后，命令行输入 `:so %` 即可重新载入，so 是 `source` 的简写，意思是加载脚本，`%` 代表当前正在编辑脚本的名字。
+
+# Credit
+
+TODO

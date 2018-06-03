@@ -9,8 +9,8 @@
 
 if !exists('g:bundle_group')
 	let g:bundle_group = ['basic', 'tags', 'enhanced', 'filetypes', 'textobj']
-	" let g:bundle_group += ['tags', 'airline', 'nerdtree', 'ale', 'echodoc']
 	let g:bundle_group += ['tags', 'airline', 'nerdtree', 'ale', 'echodoc']
+	let g:bundle_group += ['leaderf']
 endif
 
 
@@ -37,6 +37,7 @@ call plug#begin(get(g:, 'bundle_home', '~/.vim/bundles'))
 Plug 'easymotion/vim-easymotion'
 Plug 'justinmk/vim-dirvish'
 Plug 'godlygeek/tabular', { 'on': 'Tabularize' }
+Plug 'chrisbra/vim-diff-enhanced'
 
 
 "----------------------------------------------------------------------
@@ -292,6 +293,61 @@ if index(g:bundle_group, 'echodoc') >= 0
 	Plug 'Shougo/echodoc.vim'
 	set noshowmode
 	let g:echodoc#enable_at_startup = 1
+endif
+
+
+"----------------------------------------------------------------------
+" LeaderF
+"----------------------------------------------------------------------
+if index(g:bundle_group, 'leaderf') >= 0
+	if has('python') || has('python3')
+		Plug 'Yggdroot/LeaderF'
+		let g:Lf_ShortcutF = '<c-p>'
+		let g:Lf_ShortcutB = '<m-n>'
+		noremap <c-n> :LeaderfMru<cr>
+		noremap <m-p> :LeaderfFunction!<cr>
+		noremap <m-P> :LeaderfBufTag!<cr>
+		noremap <m-n> :LeaderfBuffer<cr>
+		noremap <m-m> :LeaderfTag<cr>
+
+		let g:Lf_MruMaxFiles = 2048
+		let g:Lf_StlSeparator = { 'left': '', 'right': '', 'font': '' }
+		let g:Lf_RootMarkers = ['.project', '.root', '.svn', '.git']
+		let g:Lf_WorkingDirectoryMode = 'Ac'
+		let g:Lf_WindowHeight = 0.30
+		let g:Lf_CacheDirectory = expand('~/.vim/cache')
+		let g:Lf_ShowRelativePath = 0
+		let g:Lf_HideHelp = 1
+
+		let g:Lf_WildIgnore = {
+					\ 'dir': ['.svn','.git','.hg'],
+					\ 'file': ['*.sw?','~$*','*.bak','*.exe','*.o','*.so','*.py[co]']
+					\ }
+
+		let g:Lf_MruFileExclude = ['*.so', '*.exe', '*.py[co]', '*.sw?', '~$*', '*.bak', '*.tmp', '*.dll']
+		let g:Lf_MruMaxFiles = 2048
+		let g:Lf_StlColorscheme = 'powerline'
+		let g:Lf_ShortcutF = '<c-p>'
+		let g:Lf_ShortcutB = '<m-n>'
+		let g:Lf_StlSeparator = { 'left': '', 'right': '', 'font': '' }
+		let g:Lf_PreviewResult = {'Function':0, 'BufTag':0}
+	else
+		Plug 'ctrlpvim/ctrlp.vim'
+		Plug 'tacahiroy/ctrlp-funky'
+		let g:ctrlp_map = ''
+		let g:ctrlp_custom_ignore = {
+		  \ 'dir':  '\v[\/]\.(git|hg|svn)$',
+		  \ 'file': '\v\.(exe|so|dll|mp3|wav|sdf|suo|mht)$',
+		  \ 'link': 'some_bad_symbolic_links',
+		  \ }
+
+		let g:ctrlp_root_markers = ['.project', '.root', '.svn', '.git']
+		let g:ctrlp_working_path = 0
+		noremap <c-p> :CtrlP<cr>
+		noremap <c-n> :CtrlPMRUFiles<cr>
+		noremap <m-p> :CtrlPFunky<cr>
+		noremap <m-n> :CtrlPBuffer<cr>
+	endif
 endif
 
 
