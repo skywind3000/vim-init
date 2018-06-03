@@ -54,7 +54,7 @@ source ~/.vim/vim-init/init.vim
 
 # 插件
 
-出去 vim-plug 额外安装的插件外，本配置自带一些依赖较大的插件，保证内网连不了网的情况下，把本配置压缩包解压一下就能跑得起来，且基本功能可用，它们是：
+除去 vim-plug 额外安装的插件外，本配置自带一些依赖较大的插件，保证内网连不了网的情况下，把本配置压缩包解压一下就能跑得起来，且基本功能可用，它们是：
 
 - [argtextobj.vim](https://github.com/gaving/vim-textobj-argument)：提供函数参数的文本对象，比如 `cia`/`caa` 可以改写一个函数参数，`dia`/`daa` 可以删除一个参数。
 - [indent-object.vim](https://github.com/michaeljsmith/vim-indent-object)：提供缩进的文本对象，比如 `vii` 可以选中同一层缩进，`cii` 可以改写当前缩进。
