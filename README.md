@@ -1,9 +1,9 @@
-# vim-init
+# 说明
 
 轻量级 Vim 配置框架，全中文注释，这既是一份合理的轻量级配置，更是一份简明教程。话说，网上的 Vim 配置多的数不过来，这里又做一个干嘛？这些配置都有一些问题：
 
 - 注释不够，很多配置就是劈里啪啦一堆 VimScript 看的人一头雾水，新人顶多只能 “用”，没法跟着 “学”。
-- 大部分都是针对 Vim 7 以前的版本，太过陈旧，对 8.0 以后的各种现代编辑器特征支持不足。
+- 大部分都是针对 Vim 7 以前的版本，太过陈旧，对 8.0/8.1 以后的各种现代编辑器特征支持不足。
 - 模块化不够好，全部塞在一个几百行的 `vimrc` 文件里，各部分搅在一起，增改都比较麻烦。
 - 插件没有分组，不能根据需要灵活选择功能组，所有插件一上就全上了，要禁止就是进去注释代码。
 - 它们有很多错误的地方，比如中文编码都没设对，很多 Windows 下的 PowerShell 脚本都打开不了。
@@ -38,3 +38,26 @@ source ~/.vim/vim-init/init.vim
 
 然后启动 Vim，在命令行运行 `:PlugInstall` 安装依赖插件即可。
 
+# 模块
+
+本配置按顺序，由如下几个主要模块组成：
+
+- `init.vim`: 配置入口，设置 runtimepath 检测脚本路径，加载其他脚本。
+- `init-basic.vim`: 所有人都能同意的基础配置，去除任何按键和样式定义，保证能用于 `tiny` 模式（没有 `+eval`）。
+- `init-config.vim`: 支持 +eval 的非 tiny 配置，初始化 ALT 键支持，功能键键盘码，备份，终端兼容等
+- `init-tabsize.vim`: 制表符宽度，是否展开空格等，因为个人差异太大，单独一个文件好更改。
+- `init-style.vim`: 色彩主题，高亮优化，状态栏，更紧凑的标签栏文字等和显示相关的东西。
+- `init-plugin.vim`: 插件，使用 vim-plug，按照设定的插件分组进行配置。
+- `init-keymaps.vim`: 快捷键定义。
+
+最好 fork 一份到你自己的仓库，然后不断修改，把它修改成你自己的东西，平时要更新时到这里同步下上游仓库，然后自己合并一下即可。
+
+本配置自带一些依赖较大的插件，保证内网连不了网的情况下，把本配置压缩包解压一下就能跑得起来，且基本功能可用，它们是：
+
+- [argtextobj.vim](https://github.com/gaving/vim-textobj-argument)：提供函数参数的文本对象，比如 `cia`/`caa` 可以改写一个函数参数，`dia`/`daa` 可以删除一个参数。
+- [indent-object.vim](https://github.com/michaeljsmith/vim-indent-object)：提供缩进的文本对象，比如 `vii` 可以选中同一层缩进，`cii` 可以改写当前缩进。
+- [asyncrun.vim](https://github.com/skywind3000/asyncrun.vim)：异步编译和运行，grep 等功能。
+- [unimpaired](https://github.com/tpope/vim-unimpaired)：提供一组以 `[` 或者 `]` 开头的快捷键，用于操作各种开关，缓存等，十分趁手，帮助见 [这里](https://github.com/tpope/vim-unimpaired/blob/master/doc/unimpaired.txt)。
+- [commentary](https://github.com/tpope/vim-commentary)：选中要注释的文本，gc切换注释/反注释，或者 gcc 注释当前行，gc{motion} 注释文本对象，比如 gcii 注释缩进。
+
+这些插件都比较简单，往往一两个文件，分布于 `plugin` 和 `autoload` 两个目录中，你可以根据自己需要增改。
