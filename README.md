@@ -58,6 +58,9 @@ source ~/.vim/vim-init/init.vim
 - [indent-object.vim](https://github.com/michaeljsmith/vim-indent-object)：提供缩进的文本对象，比如 `vii` 可以选中同一层缩进，`cii` 可以改写当前缩进。
 - [asyncrun.vim](https://github.com/skywind3000/asyncrun.vim)：异步编译和运行，grep 等功能。
 - [unimpaired](https://github.com/tpope/vim-unimpaired)：提供一组以 `[` 或者 `]` 开头的快捷键，用于操作各种开关，缓存等，十分趁手，帮助见 [这里](https://github.com/tpope/vim-unimpaired/blob/master/doc/unimpaired.txt)。
+- [quickmenu.vim](https://github.com/skywind3000/quickmenu.vim)：Vim 目录插件。
+- [vim-preview](https://github.com/skywind3000/vim-preview)：tag 和函数签名预览。
 - [commentary](https://github.com/tpope/vim-commentary)：选中要注释的文本，gc切换注释/反注释，或者 gcc 注释当前行，gc{motion} 注释文本对象，比如 gcii 注释缩进。
+- [txt.vim](https://github.com/vim-scripts/txt.vim)：通用 txt/log 文件的语法高亮，为文本和日志等增加文件名/url/日期等高亮显示。
 
 这些插件都比较简单，往往一两个文件，分布于 `plugin` 和 `autoload` 两个目录中，你可以根据自己需要增改。
