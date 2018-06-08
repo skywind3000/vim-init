@@ -20,6 +20,7 @@ endif
 
 "----------------------------------------------------------------------
 " 终端下允许 ALT，详见：http://www.skywind.me/blog/archives/2021
+" 记得设置 ttimeout （见 init-basic.vim） 和 ttimeoutlen （上面）
 "----------------------------------------------------------------------
 if has('nvim') == 0 && has('gui_running') == 0
 	function! s:metacode(key)
