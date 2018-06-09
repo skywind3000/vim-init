@@ -268,7 +268,7 @@ function! ExecuteFile()
 	elseif &ft == 'javascript'
 		let cmd = 'node "$(VIM_FILEPATH)"'
 	elseif &ft == 'perl'
-		let cmd = 'node "$(VIM_FILEPATH)"'
+		let cmd = 'perl "$(VIM_FILEPATH)"'
 	elseif &ft == 'ruby'
 		let cmd = 'ruby "$(VIM_FILEPATH)"'
 	elseif &ft == 'php'

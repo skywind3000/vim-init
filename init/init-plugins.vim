@@ -82,7 +82,6 @@ if index(g:bundle_group, 'basic') >= 0
 	Plug 'mhinz/vim-signify'
 	Plug 'mh21/errormarker.vim'
 	Plug 't9md/vim-choosewin'
-	Plug 'junegunn/fzf'
 	Plug 'Raimondi/delimitMate'
 	Plug 'skywind3000/vim-preview'
 
@@ -92,6 +91,20 @@ if index(g:bundle_group, 'basic') >= 0
 	" 默认不显示 startify
 	let g:startify_disable_at_vimenter = 1
 	let g:startify_session_dir = '~/.vim/session'
+endif
+
+
+"----------------------------------------------------------------------
+" 增强插件
+"----------------------------------------------------------------------
+if index(g:bundle_group, 'enhanced') >= 0
+	Plug 'terryma/vim-expand-region'
+	Plug 'junegunn/fzf'
+	Plug 'asins/vim-dict'
+	Plug 'wsdjeg/FlyGrep.vim'
+	Plug 'dyng/ctrlsf.vim'
+	map <m-=> <Plug>(expand_region_expand)
+	map <m--> <Plug>(expand_region_shrink)
 endif
 
 
@@ -161,6 +174,8 @@ if index(g:bundle_group, 'filetypes') >= 0
 	Plug 'octol/vim-cpp-enhanced-highlight', { 'for': ['c', 'cpp'] }
 	Plug 'justinmk/vim-syntax-extra', { 'for': ['c', 'bison', 'flex', 'cpp'] }
 	Plug 'vim-python/python-syntax', { 'for': ['python'] }
+	Plug 'rust-lang/rust.vim', { 'for': 'rust' }
+	Plug 'jceb/vim-orgmode', { 'for': 'org' }
 endif
 
 
