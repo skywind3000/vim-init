@@ -11,6 +11,7 @@
 " Last Modified: 2018/05/30 17:59:31
 "
 "======================================================================
+" vim: set ts=4 sw=4 tw=78 noet :
 
 
 "----------------------------------------------------------------------
@@ -310,12 +311,12 @@ if executable('rg')
 				\ --color never -g *.h -g *.c* -g *.py -g *.js -g *.vim 
 				\ <C-R><C-W> "<root>" <cr>
 elseif has('win32') || has('win64')
-    noremap <silent><F2> :AsyncRun! -cwd=<root> findstr /n /s /C:"<C-R><C-W>" 
+	noremap <silent><F2> :AsyncRun! -cwd=<root> findstr /n /s /C:"<C-R><C-W>" 
 				\ "\%CD\%\*.h" "\%CD\%\*.c*" "\%CD\%\*.py" "\%CD\%\*.js"
 				\ "\%CD\%\*.vim"
 				\ <cr>
 else
-    noremap <silent><F2> :AsyncRun! -cwd=<root> grep -n -s -R <C-R><C-W> 
+	noremap <silent><F2> :AsyncRun! -cwd=<root> grep -n -s -R <C-R><C-W> 
 				\ --include='*.h' --include='*.c*' --include='*.py' 
 				\ --include='*.js' --include='*.vim'
 				\ '<root>' <cr>

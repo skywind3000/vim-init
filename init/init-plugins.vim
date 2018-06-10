@@ -6,6 +6,8 @@
 " Last Modified: 2018/05/31 10:52:41
 "
 "======================================================================
+" vim: set ts=4 sw=4 tw=78 noet :
+
 
 if !exists('g:bundle_group')
 	let g:bundle_group = ['basic', 'tags', 'enhanced', 'filetypes', 'textobj']
