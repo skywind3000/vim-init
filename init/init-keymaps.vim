@@ -4,6 +4,8 @@
 "
 "   - 快速移动
 "   - 标签切换
+"   - 窗口切换
+"   - 终端支持
 "   - 编译运行
 "   - 符号搜索
 "
@@ -187,6 +189,8 @@ inoremap <m-y> <c-\><c-o>d$
 
 "----------------------------------------------------------------------
 " 窗口切换：ALT+SHIFT+hjkl
+" 传统的 CTRL+hjkl 移动窗口不适用于 vim 8.1 的终端模式，CTRL+hjkl 在
+" bash/zsh 及带文本界面的程序中都是重要键位需要保留，不能 tnoremap 的
 "----------------------------------------------------------------------
 noremap <m-H> <c-w>h
 noremap <m-L> <c-w>l
@@ -199,10 +203,13 @@ inoremap <m-K> <esc><c-w>k
 
 if has('terminal') && exists(':terminal') == 2
 	" vim 8.1 支持 termwinkey ，不需要把 terminal 切换成 normal 模式
-	tnoremap <m-H> <c-w>h
-	tnoremap <m-L> <c-w>l
-	tnoremap <m-J> <c-w>j
-	tnoremap <m-K> <c-w>k
+	" 设置 termwinkey 为 CTRL 加减号（GVIM），有些终端下是 CTRL+?
+	" 后面四个键位是搭配 termwinkey 的，如果 termwinkey 更改，也要改
+	set termwinkey=<c-_>
+	tnoremap <m-H> <c-_>h
+	tnoremap <m-L> <c-_>l
+	tnoremap <m-J> <c-_>j
+	tnoremap <m-K> <c-_>k
 	tnoremap <m-q> <c-\><c-n>
 elseif has('nvim')
 	" neovim 没有 termwinkey 支持，必须把 terminal 切换回 normal 模式
