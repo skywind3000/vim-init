@@ -70,20 +70,16 @@ set statusline+=\ %0(%{&fileformat}\ [%{(&fenc==\"\"?&enc:&fenc).(&bomb?\",BOM\"
 
 " 更清晰的错误标注：默认一片红色背景，语法高亮都被搞没了
 " 只显示红色或者蓝色下划线或者波浪线
+hi! clear SpellBad
+hi! clear SpellCap
+hi! clear SpellRare
+hi! clear SpellLocal
 if has('gui_running')
-	hi! clear SpellBad
-	hi! clear SpellCap
-	hi! clear SpellRare
-	hi! clear SpellLocal
 	hi! SpellBad gui=undercurl guisp=red
 	hi! SpellCap gui=undercurl guisp=blue
 	hi! SpellRare gui=undercurl guisp=magenta
 	hi! SpellRare gui=undercurl guisp=cyan
 else
-	hi! clear SpellBad
-	hi! clear SpellCap
-	hi! clear SpellRare
-	hi! clear SpellLocal
 	hi! SpellBad term=standout ctermfg=1 term=underline cterm=underline
 	hi! SpellCap term=underline cterm=underline
 	hi! SpellRare term=underline cterm=underline
@@ -91,11 +87,15 @@ else
 endif
 
 " 去掉 sign column 的白色背景
-hi! SignColumn ctermbg=0 guibg=#000000
+hi! SignColumn guibg=NONE ctermbg=NONE
 
 " 修改行号为浅灰色，默认主题的黄色行号很难看，换主题可以仿照修改
 highlight LineNr term=bold cterm=NONE ctermfg=DarkGrey ctermbg=NONE 
 	\ gui=NONE guifg=DarkGrey guibg=NONE
+
+" 修正补全目录的色彩：默认太难看
+hi! Pmenu guibg=gray guifg=black ctermbg=gray ctermfg=black
+hi! PmenuSel guibg=gray guifg=brown ctermbg=brown ctermfg=gray
 
 
 "----------------------------------------------------------------------
