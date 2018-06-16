@@ -201,7 +201,7 @@ inoremap <m-L> <esc><c-w>l
 inoremap <m-J> <esc><c-w>j
 inoremap <m-K> <esc><c-w>k
 
-if has('terminal') && exists(':terminal') == 2
+if has('terminal') && exists(':terminal') == 2 && has('patch-8.1.1')
 	" vim 8.1 支持 termwinkey ，不需要把 terminal 切换成 normal 模式
 	" 设置 termwinkey 为 CTRL 加减号（GVIM），有些终端下是 CTRL+?
 	" 后面四个键位是搭配 termwinkey 的，如果 termwinkey 更改，也要改
