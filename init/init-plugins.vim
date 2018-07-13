@@ -19,7 +19,7 @@ endif
 "----------------------------------------------------------------------
 " 计算当前 vim-init 的子路径
 "----------------------------------------------------------------------
-let s:home = fnamemodify(resolve(expand('<sfile>:p')), ':h')
+let s:home = fnamemodify(resolve(expand('<sfile>:p')), ':h:h')
 
 function! s:path(path)
 	let path = expand(s:home . '/' . a:path )
