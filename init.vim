@@ -40,11 +40,11 @@ LoadScript init/init-config.vim
 " 设定 tabsize
 LoadScript init/init-tabsize.vim
 
-" 界面样式
-LoadScript init/init-style.vim
-
 " 插件加载
 LoadScript init/init-plugins.vim
+
+" 界面样式
+LoadScript init/init-style.vim
 
 " 自定义按键
 LoadScript init/init-keymaps.vim
