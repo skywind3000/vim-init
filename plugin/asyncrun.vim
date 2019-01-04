@@ -1,9 +1,9 @@
 " asyncrun.vim - Run shell commands in background and output to quickfix
 "
-" Maintainer: skywind3000 (at) gmail.com, 2016, 2017, 2018
+" Maintainer: skywind3000 (at) gmail.com, 2016, 2017, 2018, 2019
 " Homepage: http://www.vim.org/scripts/script.php?script_id=5431
 "
-" Last Modified: 2018/04/29 05:23
+" Last Modified: 2019/01/04 16:49
 "
 " Run shell command in background and output to quickfix:
 "     :AsyncRun[!] [options] {cmd} ...
@@ -31,6 +31,7 @@
 "     $VIM_FILEDIR   - Full path of current buffer without the file name
 "     $VIM_FILEEXT   - File extension of current buffer
 "     $VIM_FILENOEXT - File name of current buffer without path and extension
+"     $VIM_PATHNOEXT - File name with full path but without extension
 "     $VIM_CWD       - Current directory
 "     $VIM_RELDIR    - File path relativize to current directory
 "     $VIM_RELNAME   - File name relativize to current directory
@@ -1185,6 +1186,7 @@ function! asyncrun#run(bang, opts, args, ...)
 	let l:macros['VIM_FILENAME'] = expand("%:t")
 	let l:macros['VIM_FILEDIR'] = expand("%:p:h")
 	let l:macros['VIM_FILENOEXT'] = expand("%:t:r")
+	let l:macros['VIM_PATHNOEXT'] = expand("%:r")
 	let l:macros['VIM_FILEEXT'] = "." . expand("%:e")
 	let l:macros['VIM_CWD'] = getcwd()
 	let l:macros['VIM_RELDIR'] = expand("%:h:.")
@@ -1318,7 +1320,7 @@ endfunc
 " asyncrun -version
 "----------------------------------------------------------------------
 function! asyncrun#version()
-	return '2.0.1'
+	return '2.0.3'
 endfunc
 
 
