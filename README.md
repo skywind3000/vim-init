@@ -28,7 +28,7 @@ git clone https://github.com/skywind3000/vim-init.git
 然后创建你的 `~/.vimrc` 文件，里面只有一句话：
 
 ```VimL
-source ~/.vim/vim-init/init.vim
+source ~/.vim/init.vim
 ```
 
 请调整你的终端软件，确保对 ALT 键的支持，以及 Backspace 键发送正确扫描码：
