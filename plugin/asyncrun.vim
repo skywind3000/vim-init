@@ -3,7 +3,7 @@
 " Maintainer: skywind3000 (at) gmail.com, 2016, 2017, 2018, 2019, 2020
 " Homepage: http://www.vim.org/scripts/script.php?script_id=5431
 "
-" Last Modified: 2020/01/20 16:11
+" Last Modified: 2020/02/05 05:44
 "
 " Run shell command in background and output to quickfix:
 "     :AsyncRun[!] [options] {cmd} ...
@@ -1097,6 +1097,21 @@ function! s:start_in_terminal(opts)
 			startinsert
 		endif
 		return 0
+	elseif pos == 'cur' || pos == 'curwin' || pos == 'current'
+		if has('nvim') == 0
+			let cmd = 'term ++noclose ++norestore ++curwin'
+			if has('patch-8.1.2255') || v:version >= 802
+				exec cmd . ' ++shell ' . command
+			else
+				exec cmd . ' ' . command
+			endif
+			setlocal nonumber signcolumn=no norelativenumber
+		else
+			exec 'term '. command
+			setlocal nonumber signcolumn=no norelativenumber
+			startinsert
+		endif
+		return 0
 	endif
 	let uid = win_getid()
 	noautocmd windo call s:save_restore_view(0)
@@ -1178,6 +1193,26 @@ function! s:run(opts)
 	elseif l:opts.program == 'grep'
 		let l:program = &grepprg
 		let s:async_efm = &grepformat
+	elseif l:opts.program == 'wsl'
+		if s:asyncrun_windows != 0
+			let root = ($SystemRoot == '')? 'C:/Windows' : $SystemRoot
+			let t1 = root . '/system32/wsl.exe'
+			let t2 = root . '/sysnative/wsl.exe'
+			let tt = executable(t1)? t1 : (executable(t2)? t2 : '')
+			if tt == ''
+				call s:ErrorMsg("not find wsl in your system")
+				return
+			endif
+			let cmd = shellescape(substitute(tt, '\\', '\/', 'g'))
+			let dist = get(l:opts, 'dist', get(g:, 'asyncrun_dist', ''))
+			if dist != ''
+				let cmd = cmd . ' -d ' . dist
+			endif
+			let l:command = cmd . ' ' . l:command
+		else
+			call s:ErrorMsg("only available for Windows")
+			return
+		endif
 	endif
 
 	if l:program != ''
@@ -1523,7 +1558,7 @@ endfunc
 " asyncrun -version
 "----------------------------------------------------------------------
 function! asyncrun#version()
-	return '2.2.1'
+	return '2.2.3'
 endfunc
 
 
