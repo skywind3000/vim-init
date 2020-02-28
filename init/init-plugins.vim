@@ -438,7 +438,7 @@ if index(g:bundle_group, 'leaderf') >= 0
 		" ALT+n 打开 buffer 列表进行模糊匹配
 		noremap <m-n> :LeaderfBuffer<cr>
 
-		" 全局 tags 模糊匹配
+		" ALT+m 全局 tags 模糊匹配
 		noremap <m-m> :LeaderfTag<cr>
 
 		" 最大历史文件保存 2048 个
