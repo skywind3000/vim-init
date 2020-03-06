@@ -1162,10 +1162,10 @@ function! s:start_in_terminal(opts)
 			if has_key(a:opts, 'hidden')
 				exec 'setlocal bufhidden=' . (hidden? 'hide' : '')
 			endif
-		endif
-		if focus == 0
-			exec has('nvim')? 'stopinsert' : ''
-			exec 'tabprevious'
+			if focus == 0
+				exec has('nvim')? 'stopinsert' : ''
+				exec 'tabprevious'
+			endif
 		endif
 		return 0
 	elseif pos == 'cur' || pos == 'curwin' || pos == 'current'
