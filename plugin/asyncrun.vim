@@ -3,7 +3,7 @@
 " Maintainer: skywind3000 (at) gmail.com, 2016, 2017, 2018, 2019, 2020
 " Homepage: http://www.vim.org/scripts/script.php?script_id=5431
 "
-" Last Modified: 2020/04/08 02:58
+" Last Modified: 2020/12/29 22:16
 "
 " Run shell command in background and output to quickfix:
 "     :AsyncRun[!] [options] {cmd} ...
@@ -43,7 +43,6 @@
 "     $VIM_MODE      - Execute via 0:!, 1:makeprg, 2:system(), 3:silent
 "     $VIM_COLUMNS   - How many columns in vim's screen
 "     $VIM_LINES     - How many lines in vim's screen
-"     $VIM_WORKSPACE - Current workspace folder
 "
 "     Parameters also accept these environment variables wrapped by
 "     "$(...)", and "$(VIM_FILEDIR)" will be expanded as file directory.
@@ -816,6 +815,7 @@ function! s:AsyncRun_Job_Stop(how)
 		if s:async_nvim == 0
 			if job_status(s:async_job) == 'run'
 				if job_stop(s:async_job, l:how)
+					call s:AutoCmd('Interrupt')
 					return 0
 				else
 					return -2
@@ -825,6 +825,7 @@ function! s:AsyncRun_Job_Stop(how)
 			endif
 		else
 			if s:async_job > 0
+				call s:AutoCmd('Interrupt')
 				silent! call jobstop(s:async_job)
 			endif
 		endif
@@ -974,10 +975,10 @@ endfunc
 
 " join two path
 function! s:path_join(home, name)
-    let l:size = strlen(a:home)
-    if l:size == 0 | return a:name | endif
-    let l:last = strpart(a:home, l:size - 1, 1)
-    if has("win32") || has("win64") || has("win16") || has('win95')
+	let l:size = strlen(a:home)
+	if l:size == 0 | return a:name | endif
+	let l:last = strpart(a:home, l:size - 1, 1)
+	if has("win32") || has("win64") || has("win16") || has('win95')
 		let l:first = strpart(a:name, 0, 1)
 		if l:first == "/" || l:first == "\\"
 			let head = strpart(a:home, 1, 2)
@@ -988,30 +989,27 @@ function! s:path_join(home, name)
 		elseif index([":\\", ":/"], strpart(a:name, 1, 2)) >= 0
 			return a:name
 		endif
-        if l:last == "/" || l:last == "\\"
-            return a:home . a:name
-        else
-            return a:home . '/' . a:name
-        endif
-    else
+		if l:last == "/" || l:last == "\\"
+			return a:home . a:name
+		else
+			return a:home . '/' . a:name
+		endif
+	else
 		if strpart(a:name, 0, 1) == "/"
 			return a:name
 		endif
-        if l:last == "/"
-            return a:home . a:name
-        else
-            return a:home . '/' . a:name
-        endif
-    endif
+		if l:last == "/"
+			return a:home . a:name
+		else
+			return a:home . '/' . a:name
+		endif
+	endif
 endfunc
 
 " find project root
 function! s:find_root(path, markers, strict)
 	function! s:guess_root(filename, markers)
 		let fullname = asyncrun#fullname(a:filename)
-		if exists('b:asyncrun_root')
-			return b:asyncrun_root
-		endif
 		if fullname =~ '^fugitive:/'
 			if exists('b:git_dir')
 				return fnamemodify(b:git_dir, ':h')
@@ -1041,8 +1039,17 @@ function! s:find_root(path, markers, strict)
 				break
 			endif
 		endwhile
-        return ''
+		return ''
 	endfunc
+	if a:path == '%'
+		if exists('b:asyncrun_root') && b:asyncrun_root != ''
+			return b:asyncrun_root
+		elseif exists('t:asyncrun_root') && t:asyncrun_root != ''
+			return t:asyncrun_root
+		elseif exists('g:asyncrun_root') && g:asyncrun_root != ''
+			return g:asyncrun_root
+		endif
+	endif
 	let root = s:guess_root(a:path, a:markers)
 	if root != ''
 		return asyncrun#fullname(root)
@@ -1369,7 +1376,7 @@ function! s:run(opts)
 
 	" mode alias
 	let l:modemap = {'async':0, 'make':1, 'bang':2, 'python':3, 'os':4,
-		\ 'hide':5, 'terminal': 6, 'execute':1, 'term':6, 'system':4}
+				\ 'hide':5, 'terminal': 6, 'execute':1, 'term':6, 'system':4}
 
 	let l:modemap['external'] = 4
 	let l:modemap['quickfix'] = 0
@@ -1679,25 +1686,6 @@ endfunc
 
 
 "----------------------------------------------------------------------
-" get workspace
-"----------------------------------------------------------------------
-function! asyncrun#workspace()
-	let workspace = ''
-	if exists('b:asyncrun_workspace')
-		let workspace = b:asyncrun_workspace
-	elseif exists('t:asyncrun_workspace')
-		let workspace = t:asyncrun_workspace
-	elseif exists('g:asyncrun_workspace')
-		let workspace = g:asyncrun_workspace
-	endif
-	if workspace == '-'
-		return getcwd()
-	endif
-	return (workspace != '')? workspace : getcwd()
-endfunc
-
-
-"----------------------------------------------------------------------
 " asyncrun - run
 "----------------------------------------------------------------------
 function! asyncrun#run(bang, opts, args, ...)
@@ -1721,14 +1709,12 @@ function! asyncrun#run(bang, opts, args, ...)
 	let l:macros['VIM_LINES'] = ''.&lines
 	let l:macros['VIM_GUI'] = has('gui_running')? 1 : 0
 	let l:macros['VIM_ROOT'] = asyncrun#get_root('%')
-    let l:macros['VIM_HOME'] = expand(split(&rtp, ',')[0])
+	let l:macros['VIM_HOME'] = expand(split(&rtp, ',')[0])
 	let l:macros['VIM_PRONAME'] = fnamemodify(l:macros['VIM_ROOT'], ':t')
 	let l:macros['VIM_DIRNAME'] = fnamemodify(l:macros['VIM_CWD'], ':t')
-	let l:macros['VIM_WORKSPACE'] = asyncrun#workspace()
 	let l:macros['VIM_PWD'] = l:macros['VIM_CWD']
 	let l:macros['<cwd>'] = l:macros['VIM_CWD']
 	let l:macros['<root>'] = l:macros['VIM_ROOT']
-	let l:macros['<workspace>'] = l:macros['VIM_WORKSPACE']
 	let l:macros['<pwd>'] = l:macros['VIM_PWD']
 	let l:retval = ''
 
@@ -1876,7 +1862,7 @@ endfunc
 " asyncrun - version
 "----------------------------------------------------------------------
 function! asyncrun#version()
-	return '2.7.3'
+	return '2.7.7'
 endfunc
 
 
@@ -1884,7 +1870,7 @@ endfunc
 " Commands
 "----------------------------------------------------------------------
 command! -bang -nargs=+ -range=0 -complete=file AsyncRun
-	\ call asyncrun#run('<bang>', '', <q-args>, <count>, <line1>, <line2>)
+			\ call asyncrun#run('<bang>', '', <q-args>, <count>, <line1>, <line2>)
 
 command! -bar -bang -nargs=0 AsyncStop call asyncrun#stop('<bang>')
 
