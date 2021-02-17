@@ -34,10 +34,10 @@ noremap <C-h> <left>
 noremap <C-j> <down>
 noremap <C-k> <up>
 noremap <C-l> <right>
-inoremap <C-h> <left>
-inoremap <C-j> <down>
-inoremap <C-k> <up>
-inoremap <C-l> <right>
+inoremap <m-h> <left>
+inoremap <m-j> <down>
+inoremap <m-k> <up>
+inoremap <m-l> <right>
 
 
 "----------------------------------------------------------------------

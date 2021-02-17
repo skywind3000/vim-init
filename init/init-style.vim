@@ -17,7 +17,7 @@
 set laststatus=2
 
 " 总是显示行号
-set number
+set rnu
 
 " 总是显示侧边栏（用于显示 mark/gitdiff/诊断信息）
 set signcolumn=yes
@@ -99,6 +99,7 @@ highlight LineNr term=bold cterm=NONE ctermfg=DarkGrey ctermbg=NONE
 hi! Pmenu guibg=gray guifg=black ctermbg=gray ctermfg=black
 hi! PmenuSel guibg=gray guifg=brown ctermbg=brown ctermfg=gray
 
+set guifont=Consolas:h13:cANSI:qDRAFT
 
 "----------------------------------------------------------------------
 " 终端设置，隐藏行号和侧边栏
@@ -130,6 +131,20 @@ augroup END
 "----------------------------------------------------------------------
 if has('gui_running')
 	let g:config_vim_tab_style = 3
+endif
+
+
+"----------------------------------------------------------------------
+" disable gui menu
+"----------------------------------------------------------------------
+if has('gui_running')
+	set guioptions-=T
+	set guioptions-=m
+	set guioptions-=L
+	set guioptions-=r
+	set guioptions-=r
+	set guioptions-=b
+	set guioptions-=e
 endif
 
 
