@@ -49,5 +49,6 @@ LoadScript init/init-style.vim
 " 自定义按键
 LoadScript init/my-keymaps.vim
 
+set t_ut=""
 
 

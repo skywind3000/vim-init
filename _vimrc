@@ -187,7 +187,7 @@ nnoremap <Tab> gt
 
 " easy way to do :noh
 " map <silent> <leader>n :noh<cr>
-nnoremap <silent> <ESC> :noh<cr>
+nnoremap <silent> <ESC> :noh<cr><cr>
 
 map <silent> <leader>n :NERDTreeToggle<cr>
 " }}}
