@@ -122,7 +122,7 @@ command! Bd :bp | :sp | :bn | :bd
 
 
 " quick nohighlight
-nnoremap <silent> <ESC> :noh<cr>
+nnoremap <silent> <c-L> :noh<cr>
 
 " compile and run C/C++ project
 
