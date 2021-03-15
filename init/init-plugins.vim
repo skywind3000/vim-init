@@ -166,6 +166,8 @@ if index(g:bundle_group, 'enhanced') >= 0
 
 	" 配对括号和引号自动补全
 	Plug 'Raimondi/delimitMate'
+	let g:delimitMate_expand_space = 1
+	let g:delimitMate_expand_cr = 2
 
 	" 提供 gist 接口
 	Plug 'lambdalisue/vim-gista', { 'on': 'Gista' }
