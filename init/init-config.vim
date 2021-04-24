@@ -108,7 +108,7 @@ set backupext=.bak
 " set noswapfile
 
 " 禁用 undo文件
-" set undofile
+set undofile
 
 " 创建目录，并且忽略可能出现的警告
 silent! call mkdir(expand('~/.vim/backupdir'), "p", 0755)
