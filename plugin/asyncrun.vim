@@ -3,7 +3,7 @@
 " Maintainer: skywind3000 (at) gmail.com, 2016-2022
 " Homepage: https://github.com/skywind3000/asyncrun.vim
 "
-" Last Modified: 2022/10/12 00:33
+" Last Modified: 2022/11/20 22:01
 "
 " Run shell command in background and output to quickfix:
 "     :AsyncRun[!] [options] {cmd} ...
@@ -230,14 +230,21 @@ function! s:NotSupport()
 	call s:ErrorMsg(msg)
 endfunc
 
+" doautocmd
+function! s:DoAutoCmd(text)
+	let cmd = (g:asyncrun_silent)? 'silent doautocmd' : 'doautocmd'
+	if v:version >= 704
+		let cmd = cmd . ' <nomodeline>'
+	endif
+	if has('autocmd')
+		exec cmd . ' ' . a:text
+	endif
+endfunc
+
 " run autocmd
 function! s:AutoCmd(name)
 	if has('autocmd') && ((g:asyncrun_skip / 2) % 2) == 0
-		if g:asyncrun_silent
-			exec 'silent doautocmd <nomodeline> User AsyncRun'.a:name
-		else
-			exec 'doautocmd <nomodeline> User AsyncRun'.a:name
-		endif
+		call s:DoAutoCmd('User AsyncRun' . a:name)
 	endif
 endfunc
 
@@ -528,17 +535,9 @@ function! s:AsyncRun_Job_AutoCmd(mode, auto)
 		return 0
 	endif
 	if a:mode == 0
-		if g:asyncrun_silent
-			silent exec 'doautocmd <nomodeline> QuickFixCmdPre '. name
-		else
-			exec 'doautocmd <nomodeline> QuickFixCmdPre '. name
-		endif
+		call s:DoAutoCmd('QuickFixCmdPre ' . name)
 	else
-		if g:asyncrun_silent
-			silent exec 'doautocmd <nomodeline> QuickFixCmdPost '. name
-		else
-			exec 'doautocmd <nomodeline> QuickFixCmdPost '. name
-		endif
+		call s:DoAutoCmd('QuickFixCmdPost ' . name)
 	endif
 endfunc
 
@@ -1258,7 +1257,6 @@ endfunc
 "----------------------------------------------------------------------
 function! s:terminal_init(opts)
 	let command = a:opts.cmd
-	let hidden = get(a:opts, 'hidden', 0)
 	let shell = (has('nvim') == 0)? 1 : 0
 	let pos = get(a:opts, 'pos', 'bottom')
 	let pos = (pos == 'background')? 'hide' : pos
@@ -1301,6 +1299,9 @@ function! s:terminal_init(opts)
 				if cwd != ''
 					let opts.cwd = cwd
 				endif
+			endif
+			if has('patch-8.1.1630')
+				let opts.term_name = s:term_new_name(a:opts)
 			endif
 			try
 				let bid = term_start(command, opts)
@@ -1356,13 +1357,24 @@ function! s:terminal_init(opts)
 		if get(a:opts, 'listed', 1) == 0
 			setlocal nobuflisted
 		endif
-		exec has('nvim')? 'startinsert' : ''
-		if has_key(a:opts, 'hidden')
-			exec 'setlocal bufhidden=' . (hidden? 'hide' : '')
+		let hidden = get(g:, 'asyncrun_term_hidden', '')
+		let hidden = get(a:opts, 'hidden', hidden)
+		if type(hidden) == type(0)
+			let t = (hidden)? 'hide' : 'wipe'
+		else
+			let t = (type(hidden) == type(''))? hidden : ''
+			if t =~ '^\d\+'
+				let t = (str2nr(t))? 'hide' : 'wipe'
+			endif
+		endif
+		if has_key(a:opts, 'hidden') || t != ''
+			exec 'setlocal bufhidden=' . t
+			unsilent echom 't=' . t
 		endif
 		if exists('*win_getid')
 			let info.winid = win_getid()
 		endif
+		exec has('nvim')? 'startinsert' : ''
 	endif
 	let info.name = get(a:opts, 'name', '')
 	let info.post = get(a:opts, 'post', '')
@@ -1391,6 +1403,14 @@ function! s:terminal_open(opts)
 	if a:opts.cwd != ''
 		silent! call s:chdir(previous)
 	endif
+	if get(a:opts, 'reuse', 0)
+		let bid = get(a:opts, '_terminal_wipe', -1)
+		if bid > 0
+			if bufexists(bid)
+				silent! exec 'bw '  . bid
+			endif
+		endif
+	endif
 	return hr
 endfunc
 
@@ -1412,9 +1432,16 @@ function! s:terminal_exit(...)
 	unlet s:async_term[pid]
 	let g:asyncrun_code = code
 	let g:asyncrun_name = info.name
-	if info.close != 0
-		let bid = info.bid
-		if bid >= 0
+	let bid = info.bid
+	if bid >= 0
+		let need_wipe = get(g:, 'asyncrun_term_wipe', 0)
+		if need_wipe
+			let bh = getbufvar(bid, '&bufhidden', '')
+			if empty(bh)
+				call setbufvar(bid, '&bufhidden', 'wipe')
+			endif
+		endif
+		if info.close != 0
 			if getbufvar(bid, '&bt', '') == 'terminal'
 				silent! exec "bd! " . bid
 			endif
@@ -1432,6 +1459,65 @@ endfunc
 
 
 "----------------------------------------------------------------------
+" check terminal is still running
+"----------------------------------------------------------------------
+function! s:term_alive(bid)
+	if getbufvar(a:bid, '&buftype') != 'terminal'
+		return 0
+	endif
+	if has('nvim') == 0
+		return (term_getstatus(a:bid) == 'finished')? 0 : 1
+	else
+		let ch = getbufvar(a:bid, '&channel')
+		let status = (jobwait([ch], 0)[0] == -1)? 1 : 0
+		return (status == 0)? 0 : 1
+	endif
+	return 0
+endfunc
+
+
+"----------------------------------------------------------------------
+" get a proper name
+"----------------------------------------------------------------------
+function! s:term_new_name(opts)
+	let command = a:opts.cmd
+	let name = '!' . command
+	let wipe = get(a:opts, '_terminal_wipe', -1)
+	if !bufexists(name)
+		return name
+	elseif get(a:opts, 'reuse', 0)
+		let bid = bufnr(name)
+		if bid == bufnr('%')
+			unsilent echom 'match'
+			if !s:term_alive(bid)
+				if wipe == bid
+					return name
+				endif
+			endif
+		endif
+	endif
+	let index = 1
+	while 1
+		let test = printf('%s (%d)', name, index)
+		if bufnr(test) < 0
+			return test
+		elseif get(a:opts, 'reuse', 0)
+			let bid = bufnr(test)
+			if bid == bufnr('%')
+				if !s:term_alive(bid)
+					if wipe == bid
+						return test
+					endif
+				endif
+			endif
+		endif
+		let index += 1
+	endwhile
+	return name
+endfunc
+
+
+"----------------------------------------------------------------------
 " run in a terminal
 "----------------------------------------------------------------------
 function! s:start_in_terminal(opts)
@@ -1441,6 +1527,7 @@ function! s:start_in_terminal(opts)
 		return -1
 	endif
 	let avail = -1
+	let a:opts._terminal_wipe = -1
 	for ii in range(winnr('$'))
 		let wid = ii + 1
 		if getwinvar(wid, '&bt') == 'terminal'
@@ -1496,6 +1583,7 @@ function! s:start_in_terminal(opts)
 				endif
 			else
 				exec 'tabn ' . avail
+				let a:opts._terminal_wipe = bufnr('%')
 			endif
 		endif
 		let hr = s:terminal_open(a:opts)
@@ -1538,6 +1626,7 @@ function! s:start_in_terminal(opts)
 	endif
 	if avail > 0 
 		exec "normal! ". avail . "\<c-w>\<c-w>"
+		let a:opts._terminal_wipe = bufnr('%')
 	endif
 	let uid = win_getid()
 	keepalt noautocmd call win_gotoid(origin)
@@ -1616,6 +1705,7 @@ function! s:run(opts)
 	let l:program = ""
 
 	let s:async_efm = a:opts.errorformat
+	let l:opts.code = l:mode
 
 	if l:opts.program == 'make'
 		let l:program = &makeprg
@@ -1767,20 +1857,31 @@ function! s:run(opts)
 		endif
 		let l:efm1 = &g:efm
 		let l:efm2 = &l:efm
+		if exists('&makeencoding')
+			let l:encoding = &l:makeencoding
+			if g:asyncrun_encs != ''
+				let &l:makeencoding = g:asyncrun_encs
+			endif
+		endif
 		if g:asyncrun_local != 0
 			let &g:efm = s:async_efm
 			let &l:efm = s:async_efm
 		endif
 		if has('autocmd')
 			call s:AsyncRun_Job_AutoCmd(0, opts.auto)
-			exec "noautocmd make!"
+			silent exec "noautocmd make!"
 			call s:AsyncRun_Job_AutoCmd(1, opts.auto)
 		else
-			exec "make!"
+			silent exec "make!"
 		endif
 		if g:asyncrun_local != 0
 			if l:efm1 != &g:efm | let &g:efm = l:efm1 | endif
 			if l:efm2 != &l:efm | let &l:efm = l:efm2 | endif
+		endif
+		if exists('&makeencoding')
+			if g:asyncrun_encs != ''
+				let &l:makeencoding = l:encoding
+			endif
 		endif
 		let &l:makeprg = l:makesave
 		if s:asyncrun_windows == 0
@@ -2096,7 +2197,7 @@ endfunc
 " asyncrun - version
 "----------------------------------------------------------------------
 function! asyncrun#version()
-	return '2.10.5'
+	return '2.11.4'
 endfunc
 
 
