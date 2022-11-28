@@ -4,8 +4,8 @@
 "
 " Maintainer: skywind3000 (at) gmail.com, 2020-2021
 "
-" Last Modified: 2022/10/06 11:07
-" Verision: 1.9.8
+" Last Modified: 2022/11/29 04:55
+" Verision: 1.9.9
 "
 " For more information, please visit:
 " https://github.com/skywind3000/asynctasks.vim
@@ -70,7 +70,7 @@ let g:asynctasks_term_rows = get(g:, 'asynctasks_term_rows', '')
 let g:asynctasks_term_focus = get(g:, 'asynctasks_term_focus', 1)
 
 " make internal terminal tab reusable
-let g:asynctasks_term_reuse = get(g:, 'asynctasks_term_reuse', 0)
+let g:asynctasks_term_reuse = get(g:, 'asynctasks_term_reuse', 1)
 
 " whether set bufhidden to 'hide' in terminal window
 let g:asynctasks_term_hidden = get(g:, 'asynctasks_term_hidden', 0)
@@ -1279,7 +1279,11 @@ function! s:task_option(task)
 	if has_key(opts, 'safe') == 0
 		let opts.safe = g:asynctasks_term_safe
 	endif
-	let opts.reuse = g:asynctasks_term_reuse
+	if g:asynctasks_term_reuse >= 0
+		let opts.reuse = g:asynctasks_term_reuse
+	else
+		let opts.reuse = (get(opts, 'pos', '') ==? 'tab')? 0 : 1
+	endif
 	if g:asynctasks_term_hidden != 0
 		let opts.hidden = 1
 	endif
