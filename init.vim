@@ -9,9 +9,9 @@
 
 " 防止重复加载
 if get(s:, 'loaded', 0) != 0
-	finish
+    finish
 else
-	let s:loaded = 1
+    let s:loaded = 1
 endif
 
 " 取得本文件所在的目录
@@ -49,5 +49,14 @@ LoadScript init/init-style.vim
 " 自定义按键
 LoadScript init/init-keymaps.vim
 
+colorscheme gruvbox
+" colorscheme janah
 
+set diffopt+=internal,algorithm:histogram
 
+" 自动更新 vimrc
+" map <silent> <leader>ss :source ~/.vimrc<cr>
+" map <silent> <leader>ee :e ~/.vimrc<cr>
+" autocmd! bufwritepost .vimrc source ~/.vimrc
+
+set cursorline
