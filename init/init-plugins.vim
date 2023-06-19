@@ -134,6 +134,10 @@ if index(g:bundle_group, 'basic') >= 0
     " :G commit
     Plug 'tpope/vim-fugitive'
 
+    Plug 'rhysd/vim-clang-format'
+    let g:clang_format#detect_style_file = 1
+    cnoremap cf ClangFormat
+
     " 使用 ALT+E 来选择窗口
     nmap <m-e> <Plug>(choosewin)
 
@@ -225,6 +229,10 @@ if index(g:bundle_group, 'tags') >= 0
 
     " 提供 GscopeFind 命令并自动处理好 gtags 数据库切换
     " 支持光标移动到符号名上：<leader>cg 查看定义，<leader>cs 查看引用
+    " <leader>cs 查找符号引用
+    " <leader>cg 查找符号定义
+    " <leader>cc 查找调用该函数的func
+    " <leader>ci 查找 include 的文件
     Plug 'skywind3000/gutentags_plus'
 
     " 设定项目目录标志：除了 .git/.svn 外，还有 .root 文件
@@ -262,6 +270,12 @@ if index(g:bundle_group, 'tags') >= 0
 
     " 禁止 gutentags 自动链接 gtags 数据库
     let g:gutentags_auto_add_gtags_cscope = 0
+
+    " change focus to quickfix window after search (optional).
+    let g:gutentags_plus_switch = 1
+
+    " 排查问题: https://github.com/skywind3000/gutentags_plus#troubleshooting
+    " let g:gutentags_define_advanced_commands = 1
 endif
 
 
@@ -318,6 +332,18 @@ if index(g:bundle_group, 'filetypes') >= 0
 
     " vim org-mode 
     Plug 'jceb/vim-orgmode', { 'for': 'org' }
+
+    " Plug 'pboettch/vim-cmake-syntax', { 'for': ['cmake'] }
+
+    let g:cpp_member_variable_highlight = 1
+    let g:cpp_class_decl_highlight = 1
+    let g:cpp_concepts_highlight = 1
+    let g:cpp_posix_standard = 1
+    
+    let g:python_highlight_builtins = 1
+	let g:python_highlight_builtin_objs = 1
+	let g:python_highlight_builtin_types = 1
+	let g:python_highlight_builtin_funcs = 1
 endif
 
 
@@ -328,22 +354,33 @@ if index(g:bundle_group, 'airline') >= 0
     Plug 'vim-airline/vim-airline'
     Plug 'vim-airline/vim-airline-themes'
 
-    " let g:airline_section_z = airline#section#create(['windowswap', '%3p%%', 'linenr', 'maxlinenr'])
+    let g:airline_theme='angr'
 
     "TODO 这里配置需要修改
+    " 左侧分隔符
     let g:airline_left_sep = ''
     let g:airline_left_alt_sep = ''
     let g:airline_right_sep = ''
     let g:airline_right_alt_sep = ''
-    let g:airline_powerline_fonts = 0
-    let g:airline_exclude_preview = 1
-    let g:airline_section_b = '%n'
-    let g:airline_theme='angr'
+
+    " 关闭 git 分支
     let g:airline#extensions#branch#enabled = 0
-    let g:airline#extensions#syntastic#enabled = 0
-    let g:airline#extensions#fugitiveline#enabled = 0
-    let g:airline#extensions#csv#enabled = 0
-    let g:airline#extensions#vimagit#enabled = 0
+
+    " 使用 ascii 字符
+    let g:airline_symbols_ascii = 1
+    let g:airline_powerline_fonts = 0
+
+    " 对 preview 窗口的支持
+    let g:airline_exclude_preview = 1
+
+    " vim 的缓冲区
+    let g:airline_section_b = '%n'
+
+    " let g:airline#extensions#tabline#enabled = 0
+    " let g:airline#extensions#syntastic#enabled = 0
+    " let g:airline#extensions#fugitiveline#enabled = 0
+    " let g:airline#extensions#csv#enabled = 0
+    " let g:airline#extensions#vimagit#enabled = 0
 endif
 
 
@@ -354,7 +391,6 @@ if index(g:bundle_group, 'nerdtree') >= 0
     Plug 'scrooloose/nerdtree', {'on': ['NERDTree', 'NERDTreeFocus', 'NERDTreeToggle', 'NERDTreeCWD', 'NERDTreeFind'] }
     Plug 'tiagofumo/vim-nerdtree-syntax-highlight'
     let g:NERDTreeMinimalUI = 1
-    let g:NERDTreeDirArrows = 1
     let g:NERDTreeHijackNetrw = 0
     noremap <space>nn :NERDTree<cr>
     noremap <space>no :NERDTreeFocus<cr>
@@ -384,7 +420,7 @@ endif
 " ale：动态语法检查
 "----------------------------------------------------------------------
 if index(g:bundle_group, 'ale') >= 0
-    Plug 'w0rp/ale'
+    Plug 'dense-analysis/ale'
 
     " 设定延迟和提示信息
     let g:ale_completion_delay = 500
@@ -403,8 +439,12 @@ if index(g:bundle_group, 'ale') >= 0
     endif
 
     " 允许 airline 集成
-    let g:airline#extensions#ale#enabled = 1
+    if index(g:bundle_group, 'airline') >= 0
+        let g:airline#extensions#ale#enabled = 1
+    endif
 
+    " 关闭没有明确指定的功能
+    let g:ale_linters_explicit = 1
     " 编辑不同文件类型需要的语法检查器
     let g:ale_linters = {
                 \ 'c': ['gcc', 'cppcheck'], 
@@ -432,8 +472,10 @@ if index(g:bundle_group, 'ale') >= 0
     let g:ale_python_flake8_options = '--conf='.s:lintcfg('flake8.conf')
     let g:ale_python_pylint_options = '--rcfile='.s:lintcfg('pylint.conf')
     let g:ale_python_pylint_options .= ' --disable=W'
-    let g:ale_c_gcc_options = '-Wall -O2 -std=c99'
-    let g:ale_cpp_gcc_options = '-Wall -O2 -std=c++14'
+    let g:ale_c_cc_options = '-Wall -O2 -std=c99'
+    let g:ale_cpp_cc_options = '-Wall -O2 -std=c++14'
+    let g:ale_c_clang_options = '-Wall -O2 '
+    let g:ale_cpp_clang_options = '-Wall -O2 '
     let g:ale_c_cppcheck_options = ''
     let g:ale_cpp_cppcheck_options = ''
 
