@@ -1,9 +1,9 @@
 " asyncrun.vim - Run shell commands in background and output to quickfix
 "
-" Maintainer: skywind3000 (at) gmail.com, 2016-2022
+" Maintainer: skywind3000 (at) gmail.com, 2016-2023
 " Homepage: https://github.com/skywind3000/asyncrun.vim
 "
-" Last Modified: 2022/11/29 05:24
+" Last Modified: 2023/08/03 13:04
 "
 " Run shell command in background and output to quickfix:
 "     :AsyncRun[!] [options] {cmd} ...
@@ -606,7 +606,9 @@ function! s:AsyncRun_Job_OnFinish()
 	else
 		let l:text = 'with code '.s:async_code
 		let l:text = "[Finished in ".l:last." seconds ".l:text."]"
-		call s:AppendText([l:text], 1)
+		if !s:async_info.strip
+			call s:AppendText([l:text], 1)
+		endif
 		let g:asyncrun_status = "failure"
 	endif
 	let s:async_state = 0
@@ -1427,6 +1429,25 @@ function! s:terminal_open(opts)
 				endif
 			endif
 		endif
+		if &bt == 'terminal'
+			if has_key(a:opts, 'init')
+				let init = get(a:opts, 'init', '')
+				try
+					exec init
+				catch
+					redraw
+					echohl ErrorMsg
+					echo v:exception
+					echohl None
+				endtry
+			endif
+			if has_key(a:opts, 'ft')
+				let ft = get(a:opts, 'ft', '')
+				if ft != ''
+					exec 'setlocal ft='. ft
+				endif
+			endif
+		endif
 	endif
 	return pid
 endfunc
@@ -1619,7 +1640,9 @@ function! s:start_in_terminal(opts)
 			if focus == 0
 				if has('nvim')
 					stopinsert
-					exec 'normal! ggG'
+					if get(a:opts, 'scroll', 1)
+						exec 'normal! ggG'
+					endif
 				endif
 				let last_tid = tabpagenr('#')
 				if last_tid > 0
@@ -1668,7 +1691,9 @@ function! s:start_in_terminal(opts)
 	if focus == 0 && hr >= 0
 		if has('nvim')
 			stopinsert
-			exec 'normal! ggG'
+			if get(a:opts, 'scroll', 1)
+				exec 'normal! ggG'
+			endif
 		endif
 		call win_gotoid(origin)
 	endif
@@ -1711,6 +1736,13 @@ function! s:run(opts)
 	let l:modemap['wait'] = 3
 
 	let l:mode = get(l:modemap, l:mode, l:mode)
+
+	" alias "-runner=name" to "-mode=term -pos=name"
+	if get(l:opts, 'runner', '') != ''
+		let l:opts.pos = get(l:opts, 'runner', '')
+		let l:opts.mode = 6
+		let l:mode = 6
+	endif
 
 	" alias "-mode=raw" to "-mode=async -raw=1"
 	if type(l:mode) == type('') && l:mode == 'raw'
@@ -1777,14 +1809,8 @@ function! s:run(opts)
 		let test = ['cygwin', 'msys', 'mingw32', 'mingw64']
 		let test += ['clang64', 'clang32']
 		if has_key(g:asyncrun_program, name) != 0
-			let l:F = g:asyncrun_program[name]
-			if type(l:F) == type('')
-				let t = l:F
-				unlet l:F
-				let l:F = function(t)
-			endif
-			unsilent let l:command = l:F(l:opts)
-			unlet l:F
+			unsilent let hr = call call(g:asyncrun_program[name], [l:opts])
+			unsilent let l:command = hr
 		elseif index(test, name) >= 0
 			unsilent let l:command = s:program_msys(l:opts)
 		else
@@ -1836,17 +1862,14 @@ function! s:run(opts)
 		exec strpart(t, 1)
 		return ''
 	elseif l:runner != ''
-		let l:F = g:asyncrun_runner[l:runner]
-		if type(l:F) == type('')
-			let l:t = l:F
-			unlet l:F
-			let l:F = function(l:t)
-		endif
 		let obj = deepcopy(l:opts)
 		let obj.cmd = command
 		let obj.src = a:opts.cmd
-		call l:F(obj)
-		unlet l:F
+		if has_key(g:asyncrun_runner, l:runner)
+			call call(g:asyncrun_runner[l:runner], [obj])
+		else
+			call s:ErrorMsg(l:runner . " not found in g:asyncrun_runner")
+		endif
 		return ''
 	endif
 
@@ -2235,7 +2258,7 @@ endfunc
 " asyncrun - version
 "----------------------------------------------------------------------
 function! asyncrun#version()
-	return '2.11.13'
+	return '2.11.18'
 endfunc
 
 
