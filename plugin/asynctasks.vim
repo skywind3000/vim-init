@@ -4,7 +4,7 @@
 "
 " Maintainer: skywind3000 (at) gmail.com, 2020-2021
 "
-" Last Modified: 2023/08/03 15:26
+" Last Modified: 2023/08/03 21:20
 " Verision: 1.9.12
 "
 " For more information, please visit:
@@ -1942,6 +1942,9 @@ endfunc
 "----------------------------------------------------------------------
 function! asynctasks#cmd(bang, args, ...)
 	call s:api_init()
+	if a:args == '-load'
+		return 0
+	endif
 	if s:requirement('asyncrun') == 0
 		return -1
 	endif
