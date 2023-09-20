@@ -4,8 +4,8 @@
 "
 " Maintainer: skywind3000 (at) gmail.com, 2020-2021
 "
-" Last Modified: 2023/08/03 21:20
-" Verision: 1.9.12
+" Last Modified: 2023/09/19 21:36
+" Verision: 1.9.17
 "
 " For more information, please visit:
 " https://github.com/skywind3000/asynctasks.vim
@@ -502,6 +502,9 @@ endfunc
 function! s:config_merge(target, source, ininame, mode)
 	let special = []
 	let setting = ['*', '+', '-', '%', '#']
+	if type(a:source) != type({})
+		return a:target
+	endif
 	for key in keys(a:source)
 		if stridx(key, ':') >= 0
 			let special += [key]
@@ -655,6 +658,42 @@ endfunc
 
 
 "----------------------------------------------------------------------
+" factory config
+"----------------------------------------------------------------------
+function! s:compose_factory_config()
+	let config = {}
+	for prefix in ['g:', 't:', 'w:', 'b:']
+		let varname = prefix . 'asynctasks_factory'
+		if exists(varname)
+			let factory = eval(varname)
+			if type(factory) == type([])
+				let size = len(factory)
+				let index = 0
+				while index < size
+					let cc = call(factory[index], [])
+					call s:config_merge(config, cc, '<script>', 'script')
+					let index += 1
+				endwhile
+			else
+				let cc = call(factory, [])
+				call s:config_merge(config, cc, '<script>', 'script')
+			endif
+		endif
+	endfor
+	if exists('g:asynctasks_loader')
+		let size = len(g:asynctasks_loader)
+		let index = 0
+		while index < size
+			let cc = call(g:asynctasks_loader[index], [])
+			call s:config_merge(config, cc, '<script>', 'script')
+			let index += 1
+		endwhile
+	endif
+	return config
+endfunc
+
+
+"----------------------------------------------------------------------
 " script level config
 "----------------------------------------------------------------------
 function! s:compose_script_config()
@@ -678,10 +717,11 @@ function! asynctasks#collect_config(path, force)
 	let s:index = 0
 	let s:error = ''
 	let c1 = s:compose_rtp_config(a:force)
-	let c2 = s:compose_local_config(path)
-	let c3 = s:compose_script_config()
+	let c2 = s:compose_factory_config()
+	let c3 = s:compose_local_config(path)
+	let c4 = s:compose_script_config()
 	let tasks = {'config':{}, 'names':{}, 'avail':[]}
-	for cc in [c1, c2, c3]
+	for cc in [c1, c2, c3, c4]
 		call s:config_merge(tasks.config, cc, '', '')
 	endfor
 	let avail = []
@@ -1575,9 +1615,6 @@ endfunc
 " config template
 "----------------------------------------------------------------------
 let s:template = [
-			\ '# vim: set fenc=utf-8 ft=dosini:',
-			\ '# see: https://github.com/skywind3000/asynctasks.vim/wiki/Task-Config',
-			\ '',
 			\ '# define a new task named "file-build"',
 			\ '[file-build]',
 			\ '',
@@ -1727,18 +1764,19 @@ function! s:task_edit(mode, path, template)
 			endif
 		endif
 	endfor
-	let template = s:template
+	let taskft = get(g:, 'asynctasks_filetype', 'dosini')
+	let template = []
 	let temp = get(g:, 'asynctasks_template', 1)
 	let wiki = 'https://github.com/skywind3000/asynctasks.vim/wiki/Task-Config'
 	if type(temp) == 0
-		if temp == 0
-			let t = 'https://github.com/skywind3000/asynctasks.vim/wiki/Task-Config'
-			let template = ['# vim: set fenc=utf-8 ft=dosini:']
-			let template += ['# see: ' . wiki, '']
+		let template = ['# vim: set fenc=utf-8 ft=' . taskft . ':']
+		let template += ['# see: ' . wiki, '']
+		if temp != 0
+			call extend(template, s:template)
 		endif
 	else
 		let templates = s:template_load()
-		let template = ['# vim: set fenc=utf-8 ft=dosini:']
+		let template = ['# vim: set fenc=utf-8 ft=' . taskft . ':']
 		let template += ['# see: ' . wiki, '']
 		if a:template == ''
 			if get(g:, 'asynctasks_template_ask', 1) != 0
@@ -1793,10 +1831,14 @@ function! s:task_edit(mode, path, template)
 		else
 			exec "split ". fnameescape(name)
 		endif
+	elseif mods == 'tab'
+		exec "tabe " . fnameescape(name)
 	else
 		exec mods . " split " . fnameescape(name)
 	endif
-	setlocal ft=dosini
+	if taskft != ''
+		exec 'setlocal ft=' . taskft
+	endif
 	if newfile
 		exec "normal ggVGx"
 		call append(line('.') - 1, template)
@@ -1825,7 +1867,8 @@ let s:macros = {
 			\ 'VIM_RELNAME': 'File name relativize to current directory',
 			\ 'VIM_ROOT': 'Project root directory',
 			\ 'VIM_PRONAME': 'Name of current project root directory',
-			\ 'VIM_DIRNAME': "Name of current directory",
+			\ 'VIM_CWDNAME': "Name of current directory",
+			\ 'VIM_DIRNAME': "Directory name of current file",
 			\ 'VIM_CWORD': 'Current word under cursor',
 			\ 'VIM_CFILE': 'Current filename under cursor',
 			\ 'VIM_CLINE': 'Cursor line number in current buffer',
@@ -1878,7 +1921,8 @@ function! s:expand_macros()
 	let macros['VIM_ROOT'] = asyncrun#get_root('%')
 	let macros['VIM_HOME'] = expand(split(&rtp, ',')[0])
 	let macros['VIM_PRONAME'] = fnamemodify(macros['VIM_ROOT'], ':t')
-	let macros['VIM_DIRNAME'] = fnamemodify(macros['VIM_CWD'], ':t')
+	let macros['VIM_DIRNAME'] = fnamemodify(macros['VIM_FILEDIR'], ':t')
+	let macros['VIM_CWDNAME'] = fnamemodify(macros['VIM_CWD'], ':t')
 	let macros['VIM_PROFILE'] = g:asynctasks_profile
 	let macros['<cwd>'] = macros['VIM_CWD']
 	let macros['<root>'] = macros['VIM_ROOT']
@@ -1906,7 +1950,8 @@ function! s:task_macro(wsl)
 	let names = ['FILEPATH', 'FILENAME', 'FILEDIR', 'FILEEXT', 'FILETYPE']
 	let names += ['FILENOEXT', 'PATHNOEXT', 'CWD', 'RELDIR', 'RELNAME']
 	let names += ['CWORD', 'CFILE', 'CLINE', 'VERSION', 'SVRNAME', 'COLUMNS']
-	let names += ['LINES', 'GUI', 'ROOT', 'DIRNAME', 'PRONAME', 'PROFILE']
+	let names += ['LINES', 'GUI', 'ROOT', 'CWDNAME', 'PRONAME', 'DIRNAME']
+	let names += ['PROFILE']
 	let rows = []
 	let rows += [['Macro', 'Detail', 'Value']]
 	let highmap = {}
@@ -2196,8 +2241,21 @@ function! asynctasks#source(maxwidth)
 	let maxsize = -1
 	let limit = a:maxwidth
 	let source = []
+	let sortme = get(g:, 'asynctasks_sort', 0)
 	if len(tasks) == 0
 		return []
+	endif
+	if sortme == 1
+		let n1 = []
+		let n2 = []
+		for task in tasks
+			if task.scope == 'local'
+				call add(n1, task)
+			else
+				call add(n2, task)
+			endif
+		endfor
+		let tasks = n1 + n2
 	endif
 	for task in tasks
 		let name = task.name
@@ -2291,8 +2349,10 @@ endfunc
 "----------------------------------------------------------------------
 " internal variables
 "----------------------------------------------------------------------
-function! asynctasks#environ()
-	call asynctasks#collect_config('.', 1)
+function! asynctasks#environ(path)
+	let path = (a:path == '')? expand('%:p') : a:path
+	let path = (path == '')? getcwd() : path
+	call asynctasks#collect_config(path, 1)
 	let hr = {}
 	for key in keys(s:private.tasks.environ)
 		let hr[key] = s:private.tasks.environ[key]
@@ -2307,6 +2367,48 @@ function! asynctasks#environ()
 		endif
 	endfor
 	return hr
+endfunc
+
+
+"----------------------------------------------------------------------
+" get internal variable
+"----------------------------------------------------------------------
+function! asynctasks#variable(path, name)
+	let path = (a:path == '')? expand('%:p') : a:path
+	let path = (path == '')? getcwd() : path
+	call asynctasks#collect_config(path, 1)
+	for scope in ['b:', 'w:', 't:', 'g:']
+		let name = scope . 'asynctasks_environ'
+		if exists(name)
+			let environ = eval(name)
+			if has_key(environ, a:name)
+				return environ[a:name]
+			endif
+		endif
+	endfor
+	if has_key(s:private.tasks.environ, a:name)
+		return s:private.tasks.environ[a:name]
+	endif
+	return ''
+endfunc
+
+
+"----------------------------------------------------------------------
+" get current root
+"----------------------------------------------------------------------
+function! asynctasks#current_root() abort
+	if s:requirement('asyncrun') == 0
+		return ''
+	endif
+	return asyncrun#current_root()
+endfunc
+
+
+"----------------------------------------------------------------------
+" load templates
+"----------------------------------------------------------------------
+function! asynctasks#template_load() abort
+	return s:template_load()
 endfunc
 
 
@@ -2385,6 +2487,35 @@ function! s:task_environ(bang, ...)
 		echohl Number
 		echon environ[name]
 		echohl None
+	elseif nargs > 2
+		let index = -1
+		let name = args[0]
+		let text = get(g:asynctasks_environ, name, '')
+		let argv = slice(args, 1)
+		let candidates = []
+		for ii in range(len(argv))
+			if has_key(environ, name)
+				if text == argv[ii]
+					let index = ii + 1
+				endif
+			endif
+			let candidates += [printf('&%d %s', ii + 1, argv[ii])]
+		endfor
+		let prompt = printf("Set variable '%s' to: ", name)
+		let choice = s:api_confirm(prompt, join(candidates, "\n"), index)
+		if choice < 1 || choice > len(argv)
+			return 0
+		endif
+		let environ[name] = argv[choice - 1]
+		echohl Statement
+		echon 'assigned '
+		echohl Keyword
+		echon name
+		echohl Comment
+		echon '='
+		echohl Number
+		echon environ[name]
+		echohl None
 	else
 		echom args
 		call s:errmsg('too many arguments, use AsyncTaskEnviron -h for help')
@@ -2396,10 +2527,11 @@ function! s:environ_help()
 	echo 'usage:  :AsyncTaskEnviron <operation>'
 	let t = '    :AsyncTaskEnviron'
 	echo 'operations:'
-	echo t . '                    - list all variables'
-	echo t . ' <varname>          - print value of a variable'
-	echo t . ' <varname> <value>  - assign value to a variable'
-	echo t . '! <varname>         - remove a variable'
+	echo t . '                         - list all variables'
+	echo t . ' <varname>               - print value of a variable'
+	echo t . ' <varname> <value>       - assign value to a variable'
+	echo t . ' <varname> <v1> <v2> ... - select from a value list'
+	echo t . '! <varname>              - remove a variable'
 endfunc
 
 function! s:complete_environ(ArgLead, CmdLine, CursorPos)
