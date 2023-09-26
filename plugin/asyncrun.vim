@@ -3,7 +3,7 @@
 " Maintainer: skywind3000 (at) gmail.com, 2016-2023
 " Homepage: https://github.com/skywind3000/asyncrun.vim
 "
-" Last Modified: 2023/09/20 09:47
+" Last Modified: 2023/09/25 23:19
 "
 " Run shell command in background and output to quickfix:
 "     :AsyncRun[!] [options] {cmd} ...
@@ -1369,7 +1369,8 @@ function! s:terminal_init(opts)
 		let b:asyncrun_cmd = a:opts.cmd
 		let b:asyncrun_name = get(a:opts, 'name', '')
 		let b:asyncrun_bid = bid
-		if get(a:opts, 'listed', 1) == 0
+		let listed = get(g:, 'asyncrun_term_listed', 1)
+		if get(a:opts, 'listed', listed) == 0
 			setlocal nobuflisted
 		endif
 		let hidden = get(g:, 'asyncrun_term_hidden', '')
@@ -1874,16 +1875,29 @@ function! s:run(opts)
 	let g:asyncrun_cmd = l:command
 	let t = s:StringStrip(l:command)
 
-	if strpart(t, 0, 1) == ':' && g:asyncrun_strict == 0
-		try
-			exec strpart(t, 1)
-		catch
-			redraw
-			echohl ErrorMsg
-			echo 'AsyncRun: ' . v:exception
-			echohl None
-		endtry
-		return ''
+	if strpart(t, 0, 1) == ':'
+		if t !~ '^:\s*\!\!\+'
+			try
+				if g:asyncrun_strict == 0
+					exec strpart(t, 1)
+				endif
+			catch
+				redraw
+				echohl ErrorMsg
+				echo 'AsyncRun: ' . v:exception
+				echohl None
+			endtry
+			return ''
+		else
+			let b = matchstr(t, '^:\s*\!\zs\!\+')
+			let t = matchstr(t, '^:\s*\!\!\+\zs.*$')
+			let t = s:StringStrip(t)
+			if t == ''
+				return ''
+			endif
+			let l:command = t
+			let l:mode = (strlen(b) == 1)? 4 : 5
+		endif
 	elseif l:runner != ''
 		let obj = deepcopy(l:opts)
 		let obj.cmd = command
@@ -2281,7 +2295,7 @@ endfunc
 " asyncrun - version
 "----------------------------------------------------------------------
 function! asyncrun#version()
-	return '2.11.23'
+	return '2.12.2'
 endfunc
 
 
