@@ -107,3 +107,43 @@ function! g:asyncrun_event.program(name)
 endfunc
 
 
+"----------------------------------------------------------------------
+" detect current root
+"----------------------------------------------------------------------
+function! s:root_locator()
+	let root = ''
+	if exists('g:asyncrun_rooter')
+		if type(g:asyncrun_rooter) == type('')
+			let root = call(g:asyncrun_rooter, [])
+		elseif type(g:asyncrun_rooter) == type({})
+			let test = keys(g:asyncrun_rooter)
+			call sort(test)
+			for name in test
+				let root = call(g:asyncrun_rooter[name], [])
+				if root != ''
+					return root
+				endif
+			endfor
+		elseif type(g:asyncrun_rooter) == type([])
+			for index in range(len(g:asyncrun_rooter))
+				let root = call(g:asyncrun_rooter[index], [])
+				if root != ''
+					return root
+				endif
+			endfor
+		endif
+		if root != ''
+			return root
+		endif
+	endif
+	let root = asyncrun#locator#detect()
+	if root != '' && isdirectory(root)
+		return root
+	endif
+	return ''
+endfunc
+
+
+let g:asyncrun_locator = string(function('s:root_locator'))[10:-3]
+
+

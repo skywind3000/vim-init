@@ -4,7 +4,7 @@
 "
 " Maintainer: skywind3000 (at) gmail.com, 2020-2021
 "
-" Last Modified: 2023/09/19 21:36
+" Last Modified: 2023/09/21 15:09
 " Verision: 1.9.17
 "
 " For more information, please visit:
@@ -497,6 +497,47 @@ endfunc
 
 
 "----------------------------------------------------------------------
+" check section condition
+"----------------------------------------------------------------------
+function! s:section_condition(target, condition)
+	let condition = s:strip(a:condition)
+	let p1 = stridx(condition, '==')
+	let p2 = stridx(condition, '!=')
+	if p1 < 0 && p2 < 0
+		let profile = condition
+		return (profile == g:asynctasks_profile)? 1 : 0
+	elseif p1 >= 0
+		let varname = strpart(condition, 0, p1)
+		let vartest = strpart(condition, p1 + 2)
+	elseif p2 >= 0
+		let varname = strpart(condition, 0, p2)
+		let vartest = strpart(condition, p2 + 2)
+	endif
+	let varname = s:strip(varname)
+	let vartest = s:strip(vartest)
+	let value = ''
+	if has_key(a:target, '+')
+		let value = get(a:target['+'], varname, '')
+	endif
+	for scope in ['g:', 't:', 'w:', 'b:']
+		let name = scope . 'asynctasks_environ'
+		if exists(name)
+			let environ = eval(name)
+			if has_key(environ, varname)
+				let value = environ[varname]
+			endif
+		endif
+	endfor
+	if p1 >= 0 && value == vartest
+		return 1
+	elseif p2 >= 0 && value != vartest
+		return 1
+	endif
+	return 0
+endfunc
+
+
+"----------------------------------------------------------------------
 " merge two tasks
 "----------------------------------------------------------------------
 function! s:config_merge(target, source, ininame, mode)
@@ -533,8 +574,9 @@ function! s:config_merge(target, source, ininame, mode)
 		let parts[1] = s:strip(parts[1])
 		let parts[2] = s:strip(parts[2])
 		if parts[1] != ''
-			let profile = parts[1]
-			if profile != g:asynctasks_profile
+			let condition = parts[1]
+			let hr = s:section_condition(a:target, condition)
+			if hr == 0
 				continue
 			endif
 		endif
@@ -1160,6 +1202,9 @@ function! s:handle_environ(text)
 	let t = get(g:asynctasks_environ, key, t)
 	if type(t) != type('')
 		return printf('%s', t)
+	endif
+	if t == ''
+		return s:strip(default)
 	endif
 	return t
 endfunc
@@ -2422,12 +2467,13 @@ function! s:task_environ(bang, ...)
 	for scope in ['b', 't', 'w', 'g']
 		let pattern = '^-' . scope
 		let name = scope . ':' . 'asynctasks_environ'
+		" echo pattern
 		if head =~ pattern
 			if !exists(name)
 				exec 'let ' . name . ' = {}'
 			endif
 			let environ = eval(name)
-			let args = slice(args, 1)
+			let args = args[1:]
 		endif
 	endfor
 	let nargs = len(args)
@@ -2491,7 +2537,7 @@ function! s:task_environ(bang, ...)
 		let index = -1
 		let name = args[0]
 		let text = get(g:asynctasks_environ, name, '')
-		let argv = slice(args, 1)
+		let argv = args[1:]
 		let candidates = []
 		for ii in range(len(argv))
 			if has_key(environ, name)

@@ -1,9 +1,9 @@
 " asyncrun.vim - Run shell commands in background and output to quickfix
 "
-" Maintainer: skywind3000 (at) gmail.com, 2016-2023
+" Maintainer: skywind3000 (at) gmail.com, 2016-2024
 " Homepage: https://github.com/skywind3000/asyncrun.vim
 "
-" Last Modified: 2023/09/25 23:19
+" Last Modified: 2024/03/23 00:49
 "
 " Run shell command in background and output to quickfix:
 "     :AsyncRun[!] [options] {cmd} ...
@@ -1083,7 +1083,9 @@ function! asyncrun#fullname(f)
 			let f = ''
 		elseif &bt != ''
 			let is_directory = 0
-			if f =~ '[\/\\]$'
+			if f =~ '\v^fugitive\:[\\\/][\\\/][\\\/]'
+				return asyncrun#fullname(f)
+			elseif f =~ '[\/\\]$'
 				if f =~ '^[\/\\]' || f =~ '^.:[\/\\]'
 					let is_directory = isdirectory(f)
 				endif
@@ -1092,6 +1094,13 @@ function! asyncrun#fullname(f)
 		endif
 	elseif f =~ '^\~[\/\\]'
 		let f = expand(f)
+	elseif f =~ '\v^fugitive\:[\\\/][\\\/][\\\/]'
+		let path = strpart(f, s:asyncrun_windows? 12 : 11)
+		let pos = stridx(path, '.git')
+		if pos >= 0
+			let path = strpart(path, 0, pos)
+		endif
+		let f = fnamemodify(path, ':h')
 	endif
 	let f = fnamemodify(f, ':p')
 	if s:asyncrun_windows
@@ -1139,12 +1148,6 @@ endfunc
 " guess root
 function! s:guess_root(filename, markers)
 	let fullname = asyncrun#fullname(a:filename)
-	if fullname =~ '^fugitive:/'
-		if exists('b:git_dir')
-			return fnamemodify(b:git_dir, ':h')
-		endif
-		return '' " skip any fugitive buffers early
-	endif
 	let pivot = fullname
 	if !isdirectory(pivot)
 		let pivot = fnamemodify(pivot, ':h')
@@ -1180,6 +1183,11 @@ function! s:find_root(path, markers, strict)
 			return t:asyncrun_root
 		elseif exists('g:asyncrun_root') && g:asyncrun_root != ''
 			return g:asyncrun_root
+		elseif exists('g:asyncrun_locator')
+			let root = call(g:asyncrun_locator, [])
+			if root != ''
+				return root
+			endif
 		endif
 	endif
 	let root = s:guess_root(a:path, a:markers)
@@ -1298,6 +1306,7 @@ function! s:terminal_init(opts)
 			let command = args
 		endif
 	endif
+	let g:asyncrun_term = 1
 	if has('nvim') == 0
 		if pos != 'hide'
 			let opts = {'curwin':1, 'norestore':1, 'term_finish':'open'}
@@ -1359,6 +1368,7 @@ function! s:terminal_init(opts)
 		let pid = (success)? jid : -1
 		let processid = (success)? jobpid(jid) : -1
 	endif
+	let g:asyncrun_term = 0
 	if success == 0
 		call s:ErrorMsg('Process creation failed')
 		return -1
@@ -2295,7 +2305,7 @@ endfunc
 " asyncrun - version
 "----------------------------------------------------------------------
 function! asyncrun#version()
-	return '2.12.2'
+	return '2.12.5'
 endfunc
 
 

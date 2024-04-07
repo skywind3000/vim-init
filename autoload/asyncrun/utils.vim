@@ -11,6 +11,12 @@
 
 
 "----------------------------------------------------------------------
+" internal
+"----------------------------------------------------------------------
+let s:windows = has('win32') || has('win95') || has('win64') || has('win16')
+
+
+"----------------------------------------------------------------------
 " output msg
 "----------------------------------------------------------------------
 function! asyncrun#utils#errmsg(msg)
@@ -116,5 +122,33 @@ function! asyncrun#utils#set_title(title, expanded)
 				\ '\033]1;%s\007\033]2;%s\007',
 				\ a:title, a:expanded)
 endfunction
+
+
+"----------------------------------------------------------------------
+" try to open quickfix
+"----------------------------------------------------------------------
+function! asyncrun#utils#quickfix_request()
+	let height = get(g:, "asyncrun_open", 0)
+	if height > 0
+		call asyncrun#quickfix_toggle(height, 1)
+	endif
+endfunc
+
+
+"----------------------------------------------------------------------
+" compare path
+"----------------------------------------------------------------------
+function! asyncrun#utils#path_equal(path1, path2) abort
+	let p1 = fnamemodify(a:path1, ':p')
+	let p2 = fnamemodify(a:path2, ':p')
+	if has('win32') || has('win16') || has('win64') || has('win95')
+		let p1 = tolower(substitute(p1, '\/', '\\', 'g'))
+		let p2 = tolower(substitute(p2, '\/', '\\', 'g'))
+	else
+		let p1 = substitute(p1, '\\', '\/', 'g')
+		let p2 = substitute(p2, '\\', '\/', 'g')
+	endif
+	return (p1 == p2)? 1 : 0
+endfunc
 
 
