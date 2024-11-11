@@ -1191,7 +1191,7 @@ function! s:handle_environ(text)
 	if has_key(g:asynctasks_environ, key) == 0
 		if has_key(s:private.tasks.environ, key) == 0
 			if s:strip(sep) == ''
-				let msg = 'Internal variable "'. key . '" is underfined'
+				let msg = 'Internal variable "'. key . '" is undefined'
 				return [msg]
 			else
 				return s:strip(default)
